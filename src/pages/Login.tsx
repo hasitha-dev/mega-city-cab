@@ -28,7 +28,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-purple-100">
       <Navbar />
       
       <div className="container mx-auto flex flex-col items-center justify-center min-h-screen px-4 py-8">
@@ -45,7 +45,7 @@ const Login = () => {
             </p>
           </div>
           
-          <Card className="border-primary/10 shadow-lg shadow-amber-100/50">
+          <Card className="border-primary/10 shadow-lg shadow-purple-100/50 backdrop-blur-sm bg-white/90">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl font-semibold text-center">Sign In</CardTitle>
               <CardDescription className="text-center">
@@ -70,7 +70,7 @@ const Login = () => {
                       id="email"
                       type="email"
                       placeholder="your.email@example.com"
-                      className="pl-10"
+                      className="pl-10 border border-purple-200"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -96,7 +96,7 @@ const Login = () => {
                       id="password"
                       type="password"
                       placeholder="••••••••"
-                      className="pl-10"
+                      className="pl-10 border border-purple-200"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -104,7 +104,7 @@ const Login = () => {
                   </div>
                 </div>
                 
-                <Button type="submit" className="w-full group" disabled={loading}>
+                <Button type="submit" className="w-full group transition-all hover:shadow-md bg-gradient-to-r from-purple-600 to-violet-500" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'} 
                   <ArrowRight className="ml-1 group-hover:translate-x-1 transition-transform" size={16} />
                 </Button>
@@ -115,11 +115,11 @@ const Login = () => {
                 Don't have an account? <Link to="/register" className="text-primary font-medium hover:underline">Sign up</Link>
               </div>
               
-              <div className="border border-amber-200 rounded-md p-4 bg-amber-50">
+              <div className="border border-purple-200 rounded-md p-4 bg-purple-50">
                 <div className="flex">
-                  <Info className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0" />
+                  <Info className="h-5 w-5 text-purple-600 mr-2 flex-shrink-0" />
                   <div className="text-sm">
-                    <p className="font-medium mb-1 text-amber-800">Demo Accounts</p>
+                    <p className="font-medium mb-1 text-purple-800">Demo Accounts</p>
                     <p className="text-muted-foreground mb-2">Use these credentials to test the application:</p>
                     <ul className="space-y-1 text-xs">
                       <li><span className="font-medium">Admin:</span> admin@example.com / password</li>

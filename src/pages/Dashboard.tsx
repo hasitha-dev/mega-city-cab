@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Car, MapPin, DollarSign, CalendarCheck, Users } from 'lucide-react';
+import { Car, MapPin, CalendarCheck, Users } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -30,7 +30,7 @@ const Dashboard = () => {
           </p>
         </header>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Active Bookings</CardTitle>
@@ -69,19 +69,6 @@ const Dashboard = () => {
               </p>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <DollarSign className="h-5 w-5 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">$1,824</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                +18% from last month
-              </p>
-            </CardContent>
-          </Card>
         </div>
         
         {/* Recent bookings section */}
@@ -113,8 +100,8 @@ const Dashboard = () => {
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           booking.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                          booking.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
+                          booking.status === 'Scheduled' ? 'bg-purple-100 text-purple-800' :
+                          'bg-amber-100 text-amber-800'
                         }`}>
                           {booking.status}
                         </span>

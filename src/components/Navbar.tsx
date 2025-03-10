@@ -50,13 +50,33 @@ const Navbar = () => {
     setIsOpen(false);
   }, [location.pathname]);
 
-  const navLinks = [
-    { name: 'Dashboard', path: '/dashboard', icon: <User className="h-4 w-4 mr-2" /> },
-    { name: 'Booking', path: '/booking', icon: <MapPin className="h-4 w-4 mr-2" /> },
-    { name: 'Billing', path: '/billing', icon: <DollarSign className="h-4 w-4 mr-2" /> },
-    ...(isAdmin ? [{ name: 'Admin', path: '/admin', icon: <Car className="h-4 w-4 mr-2" /> }] : []),
-    { name: 'Help', path: '/help', icon: <HelpCircle className="h-4 w-4 mr-2" /> },
-  ];
+  // Create nav links conditionally based on user role
+  const getNavLinks = () => {
+    const links = [
+      { name: 'Dashboard', path: '/dashboard', icon: <User className="h-4 w-4 mr-2" /> }
+    ];
+
+    // Only show Booking to non-admin users
+    if (!isAdmin) {
+      links.push({ name: 'Booking', path: '/booking', icon: <MapPin className="h-4 w-4 mr-2" /> });
+    }
+
+    links.push({ name: 'Billing', path: '/billing', icon: <DollarSign className="h-4 w-4 mr-2" /> });
+    
+    // Add Admin link only for admin users
+    if (isAdmin) {
+      links.push({ name: 'Admin', path: '/admin', icon: <Car className="h-4 w-4 mr-2" /> });
+    }
+    
+    // Add Help link only for non-admin users
+    if (!isAdmin) {
+      links.push({ name: 'Help', path: '/help', icon: <HelpCircle className="h-4 w-4 mr-2" /> });
+    }
+    
+    return links;
+  };
+
+  const navLinks = getNavLinks();
 
   return (
     <nav 
