@@ -112,7 +112,7 @@ const Login = () => {
             </CardContent>
             <CardFooter className="justify-center flex-col space-y-4">
               <div className="text-sm text-center text-muted-foreground">
-                Don't have an account? <Link to="/login" className="text-primary hover:underline">Sign up</Link>
+                Don't have an account? <Link to="/register" className="text-primary hover:underline">Sign up</Link>
               </div>
               
               <div className="border border-border rounded-md p-4 bg-muted/40">
