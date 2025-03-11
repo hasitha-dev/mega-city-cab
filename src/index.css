@@ -1,5 +1,7 @@
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
 @import url("https://rsms.me/inter/inter.css");
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
 @tailwind base;
 @tailwind components;
@@ -7,64 +9,64 @@
 
 @layer base {
   :root {
-    --background: 280 30% 98%;
-    --foreground: 285 40% 20%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 285 40% 20%;
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 285 40% 20%;
+    --popover: 222 47% 14%;
+    --popover-foreground: 210 40% 98%;
 
     --primary: 285 85% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 285 30% 94%;
-    --secondary-foreground: 285 40% 20%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 285 20% 92%;
-    --muted-foreground: 285 40% 40%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 285 30% 94%;
-    --accent-foreground: 285 40% 20%;
+    --accent: 217 32% 17%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 285 20% 90%;
-    --input: 285 20% 90%;
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
     --ring: 285 90% 50%;
 
     --radius: 0.75rem;
   }
 
-  .dark {
-    --background: 285 30% 10%;
-    --foreground: 285 20% 98%;
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
-    --card: 285 30% 12%;
-    --card-foreground: 285 20% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 285 30% 12%;
-    --popover-foreground: 285 20% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
     --primary: 285 90% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 285 30% 18%;
-    --secondary-foreground: 285 20% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 285 30% 18%;
-    --muted-foreground: 285 20% 60%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 285 30% 18%;
-    --accent-foreground: 285 20% 98%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 285 20% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 285 30% 18%;
-    --input: 285 30% 18%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
     --ring: 285 90% 55%;
   }
 }
@@ -76,14 +78,10 @@
 
   html,
   body {
-    @apply antialiased scroll-smooth;
+    @apply antialiased scroll-smooth bg-background text-foreground;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    @apply bg-background text-foreground;
   }
 
   input,
@@ -100,7 +98,7 @@
 
 @layer utilities {
   .glass {
-    @apply bg-white/80 backdrop-blur-lg border border-white/20;
+    @apply bg-background/60 backdrop-blur-lg border border-white/10;
   }
 
   .glass-dark {
@@ -145,4 +143,38 @@
 .no-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+/* Leaflet specific styles */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  color: #fff !important;
+}
+
+.leaflet-control-attribution a {
+  color: #aaa !important;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  backdrop-filter: blur(4px);
+}
+
+.leaflet-control-zoom a {
+  background-color: rgba(30, 30, 30, 0.8) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: rgba(50, 50, 50, 0.8) !important;
 }
