@@ -1,0 +1,72 @@
+
+import { useState } from 'react';
+
+export const useBookingForm = () => {
+  const [pickupLocation, setPickupLocation] = useState('');
+  const [destination, setDestination] = useState('');
+  const [pickupDate, setPickupDate] = useState('');
+  const [pickupTime, setPickupTime] = useState('');
+  const [vehicleType, setVehicleType] = useState('');
+  const [passengers, setPassengers] = useState(1);
+  
+  // State for map coordinates
+  const [mapCenter, setMapCenter] = useState<[number, number]>([7.8731, 80.7718]); // Sri Lanka center
+  const [startPoint, setStartPoint] = useState<[number, number] | null>(null);
+  const [endPoint, setEndPoint] = useState<[number, number] | null>(null);
+  const [distance, setDistance] = useState<number | null>(null);
+
+  // Handle route selection from map
+  const handleRouteSelect = (start: [number, number], end: [number, number]) => {
+    setStartPoint(start);
+    setEndPoint(end);
+    
+    // Calculate distance in kilometers (simple straight-line distance)
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (end[0] - start[0]) * Math.PI / 180;
+    const dLon = (end[1] - start[1]) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(start[0] * Math.PI / 180) * Math.cos(end[0] * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    
+    setDistance(distance);
+  };
+
+  // Handle location selection from map
+  const handleLocationSelect = (location: { lat: number; lng: number; name: string }) => {
+    if (!pickupLocation) {
+      setPickupLocation(location.name);
+    } else if (!destination) {
+      setDestination(location.name);
+    }
+  };
+
+  return {
+    pickupLocation,
+    setPickupLocation,
+    destination,
+    setDestination,
+    pickupDate,
+    setPickupDate,
+    pickupTime,
+    setPickupTime,
+    vehicleType,
+    setVehicleType,
+    passengers,
+    setPassengers,
+    mapCenter,
+    setMapCenter,
+    startPoint,
+    setStartPoint,
+    endPoint,
+    setEndPoint,
+    distance,
+    setDistance,
+    handleRouteSelect,
+    handleLocationSelect
+  };
+};
+
+export default useBookingForm;
