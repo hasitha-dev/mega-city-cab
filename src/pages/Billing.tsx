@@ -1,13 +1,33 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, FileText, CreditCard, Download } from 'lucide-react';
+import { DollarSign, FileText, CreditCard, Download, MoreVertical, Pencil, Trash2, X } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from 'sonner';
+
+interface Invoice {
+  id: string;
+  date: string;
+  amount: string;
+  status: 'Paid' | 'Pending' | 'Overdue';
+}
 
 const Billing = () => {
   const { user, isAuthenticated, loading } = useAuth();
+  const [activeRow, setActiveRow] = useState<string | null>(null);
+  const [invoices, setInvoices] = useState<Invoice[]>([
+    { id: 'INV-1001', date: '2023-05-15', amount: '$89.00', status: 'Paid' },
+    { id: 'INV-1002', date: '2023-05-22', amount: '$145.00', status: 'Pending' },
+    { id: 'INV-1003', date: '2023-05-28', amount: '$100.00', status: 'Pending' },
+  ]);
 
   // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
@@ -17,6 +37,17 @@ const Billing = () => {
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
+
+  const handleEdit = (invoice: Invoice) => {
+    toast.info(`Editing invoice ${invoice.id}`);
+    setActiveRow(null);
+  };
+
+  const handleDelete = (invoice: Invoice) => {
+    toast.success(`Invoice ${invoice.id} deleted`);
+    setInvoices(invoices.filter(inv => inv.id !== invoice.id));
+    setActiveRow(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,12 +130,8 @@ const Billing = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { id: 'INV-1001', date: '2023-05-15', amount: '$89.00', status: 'Paid' },
-                    { id: 'INV-1002', date: '2023-05-22', amount: '$145.00', status: 'Pending' },
-                    { id: 'INV-1003', date: '2023-05-28', amount: '$100.00', status: 'Pending' },
-                  ].map((invoice) => (
-                    <tr key={invoice.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 relative">
                       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{invoice.id}</td>
                       <td className="px-6 py-4">{invoice.date}</td>
                       <td className="px-6 py-4">{invoice.amount}</td>
@@ -118,10 +145,58 @@ const Billing = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <button className="text-primary hover:text-primary/80 flex items-center space-x-1">
-                          <Download className="h-4 w-4" />
-                          <span>Download</span>
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button className="text-primary hover:text-primary/80 flex items-center space-x-1">
+                            <Download className="h-4 w-4" />
+                            <span>Download</span>
+                          </button>
+                          
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button 
+                                  className="p-1 hover:bg-gray-100 rounded-full"
+                                  onClick={() => setActiveRow(activeRow === invoice.id ? null : invoice.id)}
+                                >
+                                  <MoreVertical className="h-4 w-4 text-gray-500" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">More actions</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          {activeRow === invoice.id && (
+                            <div className="absolute right-16 top-3 bg-white shadow-lg rounded-md border z-10 py-1 px-2">
+                              <div className="flex items-center justify-between pb-1">
+                                <p className="text-xs font-semibold">Actions</p>
+                                <button 
+                                  onClick={() => setActiveRow(null)}
+                                  className="text-gray-500 hover:text-gray-700"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                              <div className="space-y-1 pt-1 border-t">
+                                <button 
+                                  className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
+                                  onClick={() => handleEdit(invoice)}
+                                >
+                                  <Pencil className="h-3 w-3 text-blue-500" />
+                                  <span className="text-xs">Edit</span>
+                                </button>
+                                <button 
+                                  className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
+                                  onClick={() => handleDelete(invoice)}
+                                >
+                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                  <span className="text-xs">Delete</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

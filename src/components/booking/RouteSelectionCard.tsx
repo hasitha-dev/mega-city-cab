@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import MapComponent from '@/components/MapComponent';
+import { MapPin, Navigation, Route } from 'lucide-react';
 
 interface RouteSelectionCardProps {
   mapCenter: [number, number];
@@ -29,17 +30,20 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
   handleRouteSelect
 }) => {
   return (
-    <Card className="bg-card">
-      <CardHeader>
-        <CardTitle>Route Selection</CardTitle>
-        <CardDescription>Click on the map to select pickup and destination points</CardDescription>
+    <Card className="bg-card overflow-hidden border border-gray-200">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2">
+          <Route className="h-5 w-5 text-primary" />
+          Route Selection
+        </CardTitle>
+        <CardDescription>Select pickup and destination in Colombo area</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="h-[400px]">
             <MapComponent 
-              center={mapCenter}
-              zoom={7}
+              center={[6.9271, 79.8612]} // Colombo center
+              zoom={12}
               className="h-full w-full"
               selectionMode={true}
               onSelectLocation={handleLocationSelect}
@@ -48,35 +52,47 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
           </div>
           
           {distance && (
-            <div className="mt-4 p-3 bg-secondary/30 rounded-md">
+            <div className="mt-4 p-3 bg-blue-50 text-blue-800 rounded-md border border-blue-100">
               <p className="text-sm font-medium">Estimated Distance:</p>
               <p className="text-lg font-bold">{distance.toFixed(2)} km</p>
             </div>
           )}
           
-          <div className="space-y-3">
+          <div className="space-y-3 mt-2">
             {pickupLocation && (
-              <div>
-                <span className="text-sm font-medium">From:</span>
-                <p className="text-sm">{pickupLocation}</p>
+              <div className="flex items-start space-x-2">
+                <MapPin className="h-4 w-4 mt-0.5 text-blue-500" />
+                <div>
+                  <span className="text-sm font-medium block">From:</span>
+                  <p className="text-sm text-gray-600">{pickupLocation}</p>
+                </div>
               </div>
             )}
             {destination && (
-              <div>
-                <span className="text-sm font-medium">To:</span>
-                <p className="text-sm">{destination}</p>
+              <div className="flex items-start space-x-2">
+                <Navigation className="h-4 w-4 mt-0.5 text-green-500" />
+                <div>
+                  <span className="text-sm font-medium block">To:</span>
+                  <p className="text-sm text-gray-600">{destination}</p>
+                </div>
               </div>
             )}
             {pickupDate && pickupTime && (
-              <div>
-                <span className="text-sm font-medium">When:</span>
-                <p className="text-sm">{pickupDate} at {pickupTime}</p>
+              <div className="flex items-start space-x-2">
+                <div className="w-4 h-4"></div> {/* Spacer for alignment */}
+                <div>
+                  <span className="text-sm font-medium block">When:</span>
+                  <p className="text-sm text-gray-600">{pickupDate} at {pickupTime}</p>
+                </div>
               </div>
             )}
             {vehicleType && (
-              <div>
-                <span className="text-sm font-medium">Vehicle:</span>
-                <p className="text-sm">{vehicleType} ({passengers} passenger{passengers !== 1 ? 's' : ''})</p>
+              <div className="flex items-start space-x-2">
+                <div className="w-4 h-4"></div> {/* Spacer for alignment */}
+                <div>
+                  <span className="text-sm font-medium block">Vehicle:</span>
+                  <p className="text-sm text-gray-600">{vehicleType} ({passengers} passenger{passengers !== 1 ? 's' : ''})</p>
+                </div>
               </div>
             )}
           </div>

@@ -1,13 +1,34 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Car, MapPin, CalendarCheck, Users } from 'lucide-react';
+import { Car, MapPin, CalendarCheck, Users, MoreVertical, Pencil, Trash2, X, Eye } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from 'sonner';
+
+interface Booking {
+  id: string;
+  pickup: string;
+  destination: string;
+  date: string;
+  status: 'Completed' | 'Scheduled' | 'In Progress';
+}
 
 const Dashboard = () => {
   const { user, isAuthenticated, loading } = useAuth();
+  const [activeRow, setActiveRow] = useState<string | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([
+    { id: 'B-1291', pickup: '123 Main St', destination: '456 Oak Ave', date: '2023-05-21', status: 'Completed' },
+    { id: 'B-1292', pickup: '789 Pine Rd', destination: '101 Maple Dr', date: '2023-05-23', status: 'Scheduled' },
+    { id: 'B-1293', pickup: '222 Cedar Ln', destination: '333 Birch Ct', date: '2023-05-25', status: 'In Progress' },
+  ]);
 
   // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
@@ -17,6 +38,27 @@ const Dashboard = () => {
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
+
+  const handleEdit = (booking: Booking) => {
+    toast.info(`Editing booking ${booking.id}`);
+    setActiveRow(null);
+  };
+
+  const handleDelete = (booking: Booking) => {
+    if (booking.status === 'Completed') {
+      toast.error("Cannot delete completed bookings");
+      return;
+    }
+    
+    toast.success(`Booking ${booking.id} deleted`);
+    setBookings(bookings.filter(b => b.id !== booking.id));
+    setActiveRow(null);
+  };
+
+  const handleView = (booking: Booking) => {
+    toast.info(`Viewing details for booking ${booking.id}`);
+    setActiveRow(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,15 +126,12 @@ const Dashboard = () => {
                     <th scope="col" className="px-6 py-3">Destination</th>
                     <th scope="col" className="px-6 py-3">Date</th>
                     <th scope="col" className="px-6 py-3">Status</th>
+                    <th scope="col" className="px-6 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { id: 'B-1291', pickup: '123 Main St', destination: '456 Oak Ave', date: '2023-05-21', status: 'Completed' },
-                    { id: 'B-1292', pickup: '789 Pine Rd', destination: '101 Maple Dr', date: '2023-05-23', status: 'Scheduled' },
-                    { id: 'B-1293', pickup: '222 Cedar Ln', destination: '333 Birch Ct', date: '2023-05-25', status: 'In Progress' },
-                  ].map((booking) => (
-                    <tr key={booking.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                  {bookings.map((booking) => (
+                    <tr key={booking.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 relative">
                       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{booking.id}</td>
                       <td className="px-6 py-4">{booking.pickup}</td>
                       <td className="px-6 py-4">{booking.destination}</td>
@@ -105,6 +144,67 @@ const Dashboard = () => {
                         }`}>
                           {booking.status}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button 
+                                  className="p-1 hover:bg-gray-100 rounded-full"
+                                  onClick={() => setActiveRow(activeRow === booking.id ? null : booking.id)}
+                                >
+                                  <MoreVertical className="h-4 w-4 text-gray-500" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Booking actions</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          {activeRow === booking.id && (
+                            <div className="absolute right-16 top-3 bg-white shadow-lg rounded-md border z-10 py-1 px-2">
+                              <div className="flex items-center justify-between pb-1">
+                                <p className="text-xs font-semibold">Actions</p>
+                                <button 
+                                  onClick={() => setActiveRow(null)}
+                                  className="text-gray-500 hover:text-gray-700"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                              <div className="space-y-1 pt-1 border-t">
+                                <button 
+                                  className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
+                                  onClick={() => handleView(booking)}
+                                >
+                                  <Eye className="h-3 w-3 text-gray-500" />
+                                  <span className="text-xs">View</span>
+                                </button>
+                                
+                                {booking.status !== 'Completed' && (
+                                  <>
+                                    <button 
+                                      className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
+                                      onClick={() => handleEdit(booking)}
+                                    >
+                                      <Pencil className="h-3 w-3 text-blue-500" />
+                                      <span className="text-xs">Edit</span>
+                                    </button>
+                                    <button 
+                                      className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
+                                      onClick={() => handleDelete(booking)}
+                                    >
+                                      <Trash2 className="h-3 w-3 text-red-500" />
+                                      <span className="text-xs">Cancel</span>
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

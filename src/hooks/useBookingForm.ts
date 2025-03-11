@@ -10,7 +10,7 @@ export const useBookingForm = () => {
   const [vehicleType, setVehicleType] = useState('');
   const [passengers, setPassengers] = useState(1);
   
-  // State for map coordinates - centered on Colombo, Western Province
+  // State for map coordinates - centered on Colombo
   const [mapCenter, setMapCenter] = useState<[number, number]>([6.9271, 79.8612]);
   const [startPoint, setStartPoint] = useState<[number, number] | null>(null);
   const [endPoint, setEndPoint] = useState<[number, number] | null>(null);
@@ -33,9 +33,6 @@ export const useBookingForm = () => {
     const distance = R * c; // Distance in km
     
     setDistance(distance);
-    
-    // Show success message
-    toast.success("Route selected successfully!");
   };
 
   // Handle location selection from map
@@ -45,6 +42,20 @@ export const useBookingForm = () => {
     } else if (!destination) {
       setDestination(location.name);
     }
+  };
+
+  // Reset form
+  const resetForm = () => {
+    setPickupLocation('');
+    setDestination('');
+    setPickupDate('');
+    setPickupTime('');
+    setVehicleType('');
+    setPassengers(1);
+    setStartPoint(null);
+    setEndPoint(null);
+    setDistance(null);
+    toast.info("Form has been reset");
   };
 
   return {
@@ -69,7 +80,8 @@ export const useBookingForm = () => {
     distance,
     setDistance,
     handleRouteSelect,
-    handleLocationSelect
+    handleLocationSelect,
+    resetForm
   };
 };
 

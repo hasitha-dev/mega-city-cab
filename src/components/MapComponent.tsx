@@ -1,7 +1,15 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { toast } from 'sonner';
+import { MapPin, Navigation2 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Fix for default marker icons in Leaflet with webpack/vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -25,8 +33,8 @@ interface MapComponentProps {
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({
-  center = [7.8731, 80.7718], // Sri Lanka's center coordinates
-  zoom = 8,
+  center = [6.9271, 79.8612], // Colombo's center coordinates
+  zoom = 12, // Higher zoom level to focus on Colombo
   markers = [],
   className = 'h-[400px]',
   onSelectLocation,
@@ -40,15 +48,23 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [routeLine, setRouteLine] = useState<L.Polyline | null>(null);
   const [selectionStep, setSelectionStep] = useState<'start' | 'end'>('start');
 
+  // Set bounds for Colombo area (Western Province)
+  const colomboBounds = L.latLngBounds(
+    [6.7, 79.8], // Southwest corner
+    [7.0, 80.0]  // Northeast corner
+  );
+
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       // Initialize map
-      const map = L.map(mapRef.current).setView(center, zoom);
+      const map = L.map(mapRef.current, {
+        maxBounds: colomboBounds,
+        minZoom: 11
+      }).setView(center, zoom);
       
-      // Add dark theme tile layer
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
+      // Add light theme tile layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
       }).addTo(map);
       
@@ -66,12 +82,30 @@ const MapComponent: React.FC<MapComponentProps> = ({
       // Add click event for location selection
       if (selectionMode && onRouteSelect) {
         map.on('click', async (e) => {
+          // Check if click is within bounds
+          if (!colomboBounds.contains(e.latlng)) {
+            toast.error("Please select a location within Colombo area");
+            return;
+          }
+
           const { lat, lng } = e.latlng;
           
           try {
             // Get address from coordinates using OpenStreetMap Nominatim API
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
             const data = await response.json();
+            
+            // Verify location is in Western Province/Colombo area
+            const isInColombo = 
+              (data.address?.city === 'Colombo') || 
+              (data.address?.county === 'Colombo') || 
+              (data.address?.state === 'Western Province');
+            
+            if (!isInColombo) {
+              toast.error("Please select a location within Colombo area");
+              return;
+            }
+            
             const locationName = data.display_name || 'Selected Location';
             
             if (selectionStep === 'start') {
@@ -84,14 +118,15 @@ const MapComponent: React.FC<MapComponentProps> = ({
               const newStartMarker = L.marker([lat, lng], {
                 icon: L.divIcon({
                   className: 'custom-div-icon',
-                  html: `<div style="background-color:#8B5CF6;width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>`,
+                  html: `<div style="background-color:#3B82F6;width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>`,
                   iconSize: [12, 12],
                   iconAnchor: [6, 6]
                 })
-              }).addTo(map).bindPopup('Starting Point: ' + locationName).openPopup();
+              }).addTo(map).bindPopup('Pickup Point: ' + locationName).openPopup();
               
               setStartMarker(newStartMarker);
               setSelectionStep('end');
+              toast.success("Pickup location selected. Now select your destination.");
               
               if (onSelectLocation) {
                 onSelectLocation({ lat, lng, name: locationName });
@@ -106,7 +141,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
               const newEndMarker = L.marker([lat, lng], {
                 icon: L.divIcon({
                   className: 'custom-div-icon',
-                  html: `<div style="background-color:#F97316;width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>`,
+                  html: `<div style="background-color:#10B981;width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>`,
                   iconSize: [12, 12],
                   iconAnchor: [6, 6]
                 })
@@ -130,7 +165,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                     [startPoint.lat, startPoint.lng],
                     [lat, lng]
                   ],
-                  { color: '#8B5CF6', weight: 3, opacity: 0.7, dashArray: '5, 10' }
+                  { color: '#3B82F6', weight: 3, opacity: 0.8, dashArray: '5, 10' }
                 ).addTo(map);
                 
                 setRouteLine(newRouteLine);
@@ -141,6 +176,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 
                 // Call onRouteSelect callback with start and end points
                 onRouteSelect([startPoint.lat, startPoint.lng], endPoint);
+                toast.success("Route selected successfully!");
               }
               
               setSelectionStep('start'); // Reset for next selection
@@ -151,7 +187,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
             }
           } catch (error) {
             console.error('Error fetching location info:', error);
-            // Handle error gracefully
             toast.error('Error getting location information. Please try again.');
           }
         });
@@ -176,16 +211,34 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
   return (
     <div className="map-container relative">
-      <div ref={mapRef} className={`${className} rounded-lg w-full h-full`} />
+      <div ref={mapRef} className={`${className} rounded-lg w-full h-full border border-gray-200`} />
       {selectionMode && (
-        <div className="absolute bottom-4 left-4 bg-secondary/80 p-3 rounded-md backdrop-blur-sm text-xs z-[1000]">
+        <div className="absolute bottom-4 left-4 bg-white/90 p-3 rounded-md shadow-md text-xs z-[1000] text-gray-800 flex items-center space-x-2">
           {selectionStep === 'start' ? (
-            <p>Click on the map to set your starting point</p>
+            <>
+              <MapPin className="h-4 w-4 text-blue-500" />
+              <p>Click on the map to set your pickup point</p>
+            </>
           ) : (
-            <p>Click on the map to set your destination</p>
+            <>
+              <Navigation2 className="h-4 w-4 text-green-500" />
+              <p>Click on the map to set your destination</p>
+            </>
           )}
         </div>
       )}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="absolute top-4 right-4 bg-white/90 p-2 rounded-md shadow-md z-[1000]">
+              <p className="text-xs text-gray-800">Area: <span className="font-medium">Colombo</span></p>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Map is restricted to Colombo area</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };
