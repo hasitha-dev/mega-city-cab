@@ -1,7 +1,7 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { toast } from 'sonner';
 
 // Fix for default marker icons in Leaflet with webpack/vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -152,7 +152,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
           } catch (error) {
             console.error('Error fetching location info:', error);
             // Handle error gracefully
-            alert('Error getting location information. Please try again.');
+            toast.error('Error getting location information. Please try again.');
           }
         });
       }

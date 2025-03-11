@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export const useBookingForm = () => {
   const [pickupLocation, setPickupLocation] = useState('');
@@ -9,8 +10,8 @@ export const useBookingForm = () => {
   const [vehicleType, setVehicleType] = useState('');
   const [passengers, setPassengers] = useState(1);
   
-  // State for map coordinates
-  const [mapCenter, setMapCenter] = useState<[number, number]>([7.8731, 80.7718]); // Sri Lanka center
+  // State for map coordinates - centered on Colombo, Western Province
+  const [mapCenter, setMapCenter] = useState<[number, number]>([6.9271, 79.8612]);
   const [startPoint, setStartPoint] = useState<[number, number] | null>(null);
   const [endPoint, setEndPoint] = useState<[number, number] | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
@@ -32,6 +33,9 @@ export const useBookingForm = () => {
     const distance = R * c; // Distance in km
     
     setDistance(distance);
+    
+    // Show success message
+    toast.success("Route selected successfully!");
   };
 
   // Handle location selection from map
