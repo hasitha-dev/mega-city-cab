@@ -17,8 +17,11 @@ const Booking = () => {
   const [vehicleType, setVehicleType] = useState('');
   const [passengers, setPassengers] = useState(1);
   
-  // Mock coordinates for the map
-  const [mapCenter, setMapCenter] = useState<[number, number]>([40.7128, -74.0060]);
+  // State for map coordinates
+  const [mapCenter, setMapCenter] = useState<[number, number]>([7.8731, 80.7718]); // Sri Lanka center
+  const [startPoint, setStartPoint] = useState<[number, number] | null>(null);
+  const [endPoint, setEndPoint] = useState<[number, number] | null>(null);
+  const [distance, setDistance] = useState<number | null>(null);
 
   // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
@@ -38,6 +41,11 @@ const Booking = () => {
       return;
     }
     
+    if (!startPoint || !endPoint) {
+      toast.error("Please select both pickup and destination points on the map");
+      return;
+    }
+    
     // Here you would typically send the booking data to your backend
     toast.success("Booking submitted successfully!");
     
@@ -48,8 +56,39 @@ const Booking = () => {
       pickupDate,
       pickupTime,
       vehicleType,
-      passengers
+      passengers,
+      startPoint,
+      endPoint,
+      distance
     });
+  };
+
+  // Handle route selection from map
+  const handleRouteSelect = (start: [number, number], end: [number, number]) => {
+    setStartPoint(start);
+    setEndPoint(end);
+    
+    // Calculate distance in kilometers (simple straight-line distance)
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (end[0] - start[0]) * Math.PI / 180;
+    const dLon = (end[1] - start[1]) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(start[0] * Math.PI / 180) * Math.cos(end[0] * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    
+    setDistance(distance);
+  };
+
+  // Handle location selection from map
+  const handleLocationSelect = (location: { lat: number; lng: number; name: string }) => {
+    if (!pickupLocation) {
+      setPickupLocation(location.name);
+    } else if (!destination) {
+      setDestination(location.name);
+    }
   };
 
   return (
@@ -194,53 +233,54 @@ const Booking = () => {
           <div>
             <Card className="bg-card">
               <CardHeader>
-                <CardTitle>Booking Summary</CardTitle>
-                <CardDescription>Review your booking details</CardDescription>
+                <CardTitle>Route Selection</CardTitle>
+                <CardDescription>Click on the map to select pickup and destination points</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {(!pickupLocation && !destination) ? (
-                    <p className="text-muted-foreground text-sm">
-                      Fill out the form to see your booking summary
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {pickupLocation && (
-                        <div>
-                          <span className="text-sm font-medium">From:</span>
-                          <p className="text-sm">{pickupLocation}</p>
-                        </div>
-                      )}
-                      {destination && (
-                        <div>
-                          <span className="text-sm font-medium">To:</span>
-                          <p className="text-sm">{destination}</p>
-                        </div>
-                      )}
-                      {pickupDate && pickupTime && (
-                        <div>
-                          <span className="text-sm font-medium">When:</span>
-                          <p className="text-sm">{pickupDate} at {pickupTime}</p>
-                        </div>
-                      )}
-                      {vehicleType && (
-                        <div>
-                          <span className="text-sm font-medium">Vehicle:</span>
-                          <p className="text-sm">{vehicleType} ({passengers} passenger{passengers !== 1 ? 's' : ''})</p>
-                        </div>
-                      )}
+                  <div className="h-[400px]">
+                    <MapComponent 
+                      center={mapCenter}
+                      zoom={7}
+                      className="h-full w-full"
+                      selectionMode={true}
+                      onSelectLocation={handleLocationSelect}
+                      onRouteSelect={handleRouteSelect}
+                    />
+                  </div>
+                  
+                  {distance && (
+                    <div className="mt-4 p-3 bg-secondary/30 rounded-md">
+                      <p className="text-sm font-medium">Estimated Distance:</p>
+                      <p className="text-lg font-bold">{distance.toFixed(2)} km</p>
                     </div>
                   )}
                   
-                  <div className="h-[300px]">
-                    <MapComponent 
-                      center={mapCenter}
-                      zoom={13}
-                      markers={[
-                        { position: mapCenter, popup: "Your location" }
-                      ]}
-                      className="h-full w-full"
-                    />
+                  <div className="space-y-3">
+                    {pickupLocation && (
+                      <div>
+                        <span className="text-sm font-medium">From:</span>
+                        <p className="text-sm">{pickupLocation}</p>
+                      </div>
+                    )}
+                    {destination && (
+                      <div>
+                        <span className="text-sm font-medium">To:</span>
+                        <p className="text-sm">{destination}</p>
+                      </div>
+                    )}
+                    {pickupDate && pickupTime && (
+                      <div>
+                        <span className="text-sm font-medium">When:</span>
+                        <p className="text-sm">{pickupDate} at {pickupTime}</p>
+                      </div>
+                    )}
+                    {vehicleType && (
+                      <div>
+                        <span className="text-sm font-medium">Vehicle:</span>
+                        <p className="text-sm">{vehicleType} ({passengers} passenger{passengers !== 1 ? 's' : ''})</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
