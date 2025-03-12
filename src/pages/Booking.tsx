@@ -63,6 +63,7 @@ const Booking = () => {
               vehicleType={bookingFormState.vehicleType}
               passengers={bookingFormState.passengers}
               distance={bookingFormState.distance}
+              selectionStep={bookingFormState.selectionStep}
               handleLocationSelect={bookingFormState.handleLocationSelect}
               handleRouteSelect={bookingFormState.handleRouteSelect}
             />

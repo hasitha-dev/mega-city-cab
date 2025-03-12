@@ -30,6 +30,7 @@ interface MapComponentProps {
   onSelectLocation?: (location: { lat: number; lng: number; name: string }) => void;
   selectionMode?: boolean;
   onRouteSelect?: (start: [number, number], end: [number, number]) => void;
+  selectionStep?: 'pickup' | 'destination';
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({
@@ -40,13 +41,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
   onSelectLocation,
   selectionMode = false,
   onRouteSelect,
+  selectionStep = 'pickup',
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [startMarker, setStartMarker] = useState<L.Marker | null>(null);
   const [endMarker, setEndMarker] = useState<L.Marker | null>(null);
   const [routeLine, setRouteLine] = useState<L.Polyline | null>(null);
-  const [selectionStep, setSelectionStep] = useState<'start' | 'end'>('start');
 
   // Set bounds for Colombo area (Western Province)
   const colomboBounds = L.latLngBounds(
@@ -108,7 +109,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
             
             const locationName = data.display_name || 'Selected Location';
             
-            if (selectionStep === 'start') {
+            if (selectionStep === 'pickup') {
               // Remove previous start marker if exists
               if (startMarker) {
                 map.removeLayer(startMarker);
@@ -125,13 +126,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
               }).addTo(map).bindPopup('Pickup Point: ' + locationName).openPopup();
               
               setStartMarker(newStartMarker);
-              setSelectionStep('end');
-              toast.success("Pickup location selected. Now select your destination.");
               
               if (onSelectLocation) {
                 onSelectLocation({ lat, lng, name: locationName });
               }
-            } else {
+            } else if (selectionStep === 'destination') {
               // Remove previous end marker if exists
               if (endMarker) {
                 map.removeLayer(endMarker);
@@ -176,10 +175,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 
                 // Call onRouteSelect callback with start and end points
                 onRouteSelect([startPoint.lat, startPoint.lng], endPoint);
-                toast.success("Route selected successfully!");
               }
-              
-              setSelectionStep('start'); // Reset for next selection
               
               if (onSelectLocation) {
                 onSelectLocation({ lat, lng, name: locationName });
@@ -214,7 +210,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
       <div ref={mapRef} className={`${className} rounded-lg w-full h-full border border-gray-200`} />
       {selectionMode && (
         <div className="absolute bottom-4 left-4 bg-white/90 p-3 rounded-md shadow-md text-xs z-[1000] text-gray-800 flex items-center space-x-2">
-          {selectionStep === 'start' ? (
+          {selectionStep === 'pickup' ? (
             <>
               <MapPin className="h-4 w-4 text-blue-500" />
               <p>Click on the map to set your pickup point</p>

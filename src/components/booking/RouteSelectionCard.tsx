@@ -13,6 +13,7 @@ interface RouteSelectionCardProps {
   vehicleType: string;
   passengers: number;
   distance: number | null;
+  selectionStep: 'pickup' | 'destination';
   handleLocationSelect: (location: { lat: number; lng: number; name: string }) => void;
   handleRouteSelect: (start: [number, number], end: [number, number]) => void;
 }
@@ -26,6 +27,7 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
   vehicleType,
   passengers,
   distance,
+  selectionStep,
   handleLocationSelect,
   handleRouteSelect
 }) => {
@@ -48,6 +50,7 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
               selectionMode={true}
               onSelectLocation={handleLocationSelect}
               onRouteSelect={handleRouteSelect}
+              selectionStep={selectionStep}
             />
           </div>
           

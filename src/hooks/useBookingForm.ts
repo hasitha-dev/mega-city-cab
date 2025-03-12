@@ -15,6 +15,7 @@ export const useBookingForm = () => {
   const [startPoint, setStartPoint] = useState<[number, number] | null>(null);
   const [endPoint, setEndPoint] = useState<[number, number] | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
+  const [selectionStep, setSelectionStep] = useState<'pickup' | 'destination'>('pickup');
 
   // Handle route selection from map
   const handleRouteSelect = (start: [number, number], end: [number, number]) => {
@@ -37,10 +38,14 @@ export const useBookingForm = () => {
 
   // Handle location selection from map
   const handleLocationSelect = (location: { lat: number; lng: number; name: string }) => {
-    if (!pickupLocation) {
+    if (selectionStep === 'pickup') {
       setPickupLocation(location.name);
-    } else if (!destination) {
+      setSelectionStep('destination');
+      toast.info("Pickup location selected. Now select your destination.");
+    } else {
       setDestination(location.name);
+      setSelectionStep('pickup');
+      toast.success("Route selected successfully!");
     }
   };
 
@@ -55,6 +60,7 @@ export const useBookingForm = () => {
     setStartPoint(null);
     setEndPoint(null);
     setDistance(null);
+    setSelectionStep('pickup');
     toast.info("Form has been reset");
   };
 
@@ -79,6 +85,8 @@ export const useBookingForm = () => {
     setEndPoint,
     distance,
     setDistance,
+    selectionStep,
+    setSelectionStep,
     handleRouteSelect,
     handleLocationSelect,
     resetForm
