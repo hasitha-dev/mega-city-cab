@@ -32,6 +32,7 @@ interface MapComponentProps {
   selectionMode?: boolean;
   onRouteSelect?: (start: [number, number], end: [number, number]) => void;
   selectionStep?: 'pickup' | 'destination';
+  showInvoiceDetails?: () => void;
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({
@@ -43,12 +44,14 @@ const MapComponent: React.FC<MapComponentProps> = ({
   selectionMode = false,
   onRouteSelect,
   selectionStep = 'pickup',
+  showInvoiceDetails
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [startMarker, setStartMarker] = useState<L.Marker | null>(null);
   const [endMarker, setEndMarker] = useState<L.Marker | null>(null);
   const [routeLine, setRouteLine] = useState<L.Polyline | null>(null);
+  const hasRoute = startMarker !== null && endMarker !== null;
 
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
@@ -96,13 +99,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 map.removeLayer(startMarker);
               }
               
-              // Create new start marker
+              // Create new start marker with custom icon
               const newStartMarker = L.marker([lat, lng], {
                 icon: L.divIcon({
                   className: 'custom-div-icon',
-                  html: `<div style="background-color:#3B82F6;width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>`,
-                  iconSize: [12, 12],
-                  iconAnchor: [6, 6]
+                  html: `<div style="background-color:#3B82F6;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.3);"></div>`,
+                  iconSize: [16, 16],
+                  iconAnchor: [8, 8]
                 })
               }).addTo(map).bindPopup('Pickup Point: ' + locationName).openPopup();
               
@@ -117,13 +120,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 map.removeLayer(endMarker);
               }
               
-              // Create new end marker
+              // Create new end marker with custom icon
               const newEndMarker = L.marker([lat, lng], {
                 icon: L.divIcon({
                   className: 'custom-div-icon',
-                  html: `<div style="background-color:#10B981;width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>`,
-                  iconSize: [12, 12],
-                  iconAnchor: [6, 6]
+                  html: `<div style="background-color:#10B981;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.3);"></div>`,
+                  iconSize: [16, 16],
+                  iconAnchor: [8, 8]
                 })
               }).addTo(map).bindPopup('Destination: ' + locationName).openPopup();
               
@@ -145,7 +148,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                     [startPoint.lat, startPoint.lng],
                     [lat, lng]
                   ],
-                  { color: '#3B82F6', weight: 3, opacity: 0.8, dashArray: '5, 10' }
+                  { color: '#3B82F6', weight: 4, opacity: 0.9, dashArray: '8, 12' }
                 ).addTo(map);
                 
                 setRouteLine(newRouteLine);
@@ -192,7 +195,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
     <div className="map-container relative">
       <div ref={mapRef} className={`${className} rounded-lg w-full h-full border border-gray-200`} />
       {selectionMode && (
-        <MapSelectionHelper selectionStep={selectionStep} />
+        <MapSelectionHelper 
+          selectionStep={selectionStep} 
+          showInvoiceDetails={showInvoiceDetails}
+          hasRoute={hasRoute}
+        />
       )}
       <TooltipProvider>
         <Tooltip>

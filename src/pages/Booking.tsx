@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -51,6 +51,7 @@ const Booking = () => {
               startPoint={bookingFormState.startPoint}
               endPoint={bookingFormState.endPoint}
               distance={bookingFormState.distance}
+              handleLocationSelect={bookingFormState.handleLocationSelect}
             />
           </div>
           

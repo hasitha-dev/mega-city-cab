@@ -2,6 +2,9 @@
 import L from 'leaflet';
 import { toast } from 'sonner';
 
+// Google Maps API key
+export const GOOGLE_MAPS_API_KEY = 'AIzaSyAul3w-58LsqLRQ';
+
 // Set bounds for Colombo area (Western Province)
 export const colomboBounds = L.latLngBounds(
   [6.7, 79.8], // Southwest corner
@@ -38,6 +41,33 @@ export const getAddressFromCoordinates = async (lat: number, lng: number): Promi
   }
 };
 
+// Function to get location suggestions based on search text
+export const getLocationSuggestions = async (searchText: string): Promise<any[]> => {
+  if (!searchText || searchText.length < 3) return [];
+  
+  try {
+    // Using OpenStreetMap Nominatim for suggestions (free alternative to Google Places)
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchText + ' Colombo Sri Lanka')}&format=json&addressdetails=1&limit=5`
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch location suggestions');
+    }
+    
+    const data = await response.json();
+    return data.map((item: any) => ({
+      id: item.place_id,
+      name: item.display_name,
+      lat: parseFloat(item.lat),
+      lng: parseFloat(item.lon)
+    }));
+  } catch (error) {
+    console.error('Error fetching location suggestions:', error);
+    return [];
+  }
+};
+
 // Function to calculate distance between two points in kilometers
 export const calculateDistance = (start: [number, number], end: [number, number]): number => {
   // Convert degrees to radians
@@ -56,4 +86,19 @@ export const calculateDistance = (start: [number, number], end: [number, number]
   const distance = R * c;
   
   return distance;
+};
+
+// Calculate fare based on distance
+export const calculateFare = (distance: number, vehicleType: string): number => {
+  const baseRates: Record<string, number> = {
+    'sedan': 50, // Base rate per km for sedan
+    'suv': 65,   // Base rate per km for SUV
+    'van': 75,   // Base rate per km for van
+    'luxury': 100 // Base rate per km for luxury vehicles
+  };
+
+  const baseRate = baseRates[vehicleType] || 50; // Default to sedan rate
+  const baseFare = 300; // Base fare for any trip
+  
+  return baseFare + (baseRate * distance);
 };

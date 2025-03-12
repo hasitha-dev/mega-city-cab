@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Calendar, Clock, Car } from 'lucide-react';
+import { Calendar, Clock, Car } from 'lucide-react';
 import { toast } from 'sonner';
+import LocationInput from '@/components/map/LocationInput';
 
 interface BookingFormProps {
   pickupLocation: string;
@@ -20,6 +21,7 @@ interface BookingFormProps {
   startPoint: [number, number] | null;
   endPoint: [number, number] | null;
   distance: number | null;
+  handleLocationSelect: (location: { lat: number; lng: number; name: string }) => void;
 }
 
 const BookingForm: React.FC<BookingFormProps> = ({
@@ -37,7 +39,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
   setPassengers,
   startPoint,
   endPoint,
-  distance
+  distance,
+  handleLocationSelect
 }) => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -70,6 +73,20 @@ const BookingForm: React.FC<BookingFormProps> = ({
     });
   };
 
+  const handlePickupLocationSelect = (location: { lat: number; lng: number; name: string }) => {
+    handleLocationSelect({
+      ...location,
+      name: location.name
+    });
+  };
+
+  const handleDestinationSelect = (location: { lat: number; lng: number; name: string }) => {
+    handleLocationSelect({
+      ...location,
+      name: location.name
+    });
+  };
+
   return (
     <Card className="bg-card">
       <CardHeader>
@@ -82,19 +99,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
             <h3 className="text-lg font-medium">Pickup Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Pickup Location</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Enter pickup address"
-                    className="w-full pl-10 py-2 px-3 border bg-secondary/50 rounded-md"
-                    value={pickupLocation}
-                    onChange={(e) => setPickupLocation(e.target.value)}
-                  />
-                </div>
-              </div>
+              <LocationInput
+                value={pickupLocation}
+                onChange={setPickupLocation}
+                onLocationSelect={handlePickupLocationSelect}
+                placeholder="Enter pickup address"
+                label="Pickup Location"
+              />
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">Pickup Date</label>
@@ -130,19 +141,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
             <h3 className="text-lg font-medium">Destination Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Destination</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Enter destination address"
-                    className="w-full pl-10 py-2 px-3 border bg-secondary/50 rounded-md"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                  />
-                </div>
-              </div>
+              <LocationInput
+                value={destination}
+                onChange={setDestination}
+                onLocationSelect={handleDestinationSelect}
+                placeholder="Enter destination address"
+                label="Destination"
+              />
             </div>
           </div>
           
