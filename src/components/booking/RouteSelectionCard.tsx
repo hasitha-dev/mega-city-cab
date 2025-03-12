@@ -1,10 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import MapComponent from '@/components/MapComponent';
-import { MapPin, Navigation, Route, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import InvoiceDetails from './InvoiceDetails';
+import { MapPin, Navigation, Route } from 'lucide-react';
 
 interface RouteSelectionCardProps {
   mapCenter: [number, number];
@@ -33,10 +31,6 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
   handleLocationSelect,
   handleRouteSelect
 }) => {
-  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
-
-  const hasRoute = Boolean(pickupLocation && destination && distance);
-
   return (
     <Card className="bg-card overflow-hidden border border-gray-200">
       <CardHeader className="pb-2">
@@ -48,7 +42,7 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="h-[400px]">
+          <div className="h-[500px]">
             <MapComponent 
               center={[6.9271, 79.8612]} // Colombo center
               zoom={12}
@@ -57,29 +51,8 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
               onSelectLocation={handleLocationSelect}
               onRouteSelect={handleRouteSelect}
               selectionStep={selectionStep}
-              showInvoiceDetails={hasRoute ? () => setIsInvoiceOpen(true) : undefined}
             />
           </div>
-          
-          {distance && (
-            <div className="mt-4 p-3 bg-blue-50 text-blue-800 rounded-md border border-blue-100">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm font-medium">Estimated Distance:</p>
-                  <p className="text-lg font-bold">{distance.toFixed(2)} km</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-white"
-                  onClick={() => setIsInvoiceOpen(true)}
-                >
-                  <Info className="h-4 w-4 mr-2" />
-                  Fare Details
-                </Button>
-              </div>
-            </div>
-          )}
           
           <div className="space-y-3 mt-2">
             {pickupLocation && (
@@ -121,20 +94,6 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
           </div>
         </div>
       </CardContent>
-
-      <InvoiceDetails 
-        isOpen={isInvoiceOpen}
-        onClose={() => setIsInvoiceOpen(false)}
-        bookingDetails={{
-          pickupLocation,
-          destination,
-          pickupDate,
-          pickupTime,
-          vehicleType,
-          passengers,
-          distance
-        }}
-      />
     </Card>
   );
 };
