@@ -50,7 +50,7 @@ const ActionPopup: React.FC<ActionPopupProps> = ({
   return (
     <div
       ref={popupRef}
-      className="action-popup fixed z-50 rounded-md shadow-lg py-1 min-w-40"
+      className="action-popup fixed z-50 rounded-md shadow-lg py-1 min-w-40 bg-gray-800 border border-gray-700"
       style={{
         top: `${adjustedPosition.y}px`,
         left: `${adjustedPosition.x}px`,

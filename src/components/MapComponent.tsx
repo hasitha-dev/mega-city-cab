@@ -3,13 +3,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { toast } from 'sonner';
-import { MapPin, Navigation2 } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import MapSelectionHelper from './map/MapSelectionHelper';
+import { colomboBounds, getAddressFromCoordinates } from '@/utils/mapUtils';
 
 // Fix for default marker icons in Leaflet with webpack/vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -48,31 +49,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [startMarker, setStartMarker] = useState<L.Marker | null>(null);
   const [endMarker, setEndMarker] = useState<L.Marker | null>(null);
   const [routeLine, setRouteLine] = useState<L.Polyline | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-
-  // Set bounds for Colombo area (Western Province)
-  const colomboBounds = L.latLngBounds(
-    [6.7, 79.8], // Southwest corner
-    [7.0, 80.0]  // Northeast corner
-  );
-
-  // Sample locations in Colombo for suggestions
-  const colomboLocations = [
-    "Colombo Fort", "Pettah", "Kollupitiya", "Bambalapitiya", "Wellawatte",
-    "Dehiwala", "Mount Lavinia", "Ratmalana", "Moratuwa", "Panadura",
-    "Nugegoda", "Maharagama", "Kottawa", "Piliyandala", "Kesbewa",
-    "Kaduwela", "Malabe", "Battaramulla", "Rajagiriya", "Borella",
-    "Maradana", "Dematagoda", "Kirulapone", "Narahenpita", "Thimbirigasyaya"
-  ];
-
-  // Function to get location suggestions
-  const getLocationSuggestions = (input: string) => {
-    if (!input) return [];
-    const normalizedInput = input.toLowerCase();
-    return colomboLocations.filter(location => 
-      location.toLowerCase().includes(normalizedInput)
-    );
-  };
 
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
@@ -111,22 +87,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
           const { lat, lng } = e.latlng;
           
           try {
-            // Get address from coordinates using OpenStreetMap Nominatim API
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-            const data = await response.json();
-            
-            // Verify location is in Western Province/Colombo area
-            const isInColombo = 
-              (data.address?.city === 'Colombo') || 
-              (data.address?.county === 'Colombo') || 
-              (data.address?.state === 'Western Province');
-            
-            if (!isInColombo) {
-              toast.error("Please select a location within Colombo area");
-              return;
-            }
-            
-            const locationName = data.display_name || 'Selected Location';
+            const locationName = await getAddressFromCoordinates(lat, lng);
+            if (!locationName) return;
             
             if (selectionStep === 'pickup') {
               // Remove previous start marker if exists
@@ -230,19 +192,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     <div className="map-container relative">
       <div ref={mapRef} className={`${className} rounded-lg w-full h-full border border-gray-200`} />
       {selectionMode && (
-        <div className="absolute bottom-4 left-4 bg-white/90 p-3 rounded-md shadow-md text-xs z-[1000] text-gray-800 flex items-center space-x-2">
-          {selectionStep === 'pickup' ? (
-            <>
-              <MapPin className="h-4 w-4 text-blue-500" />
-              <p>Click on the map to set your pickup point</p>
-            </>
-          ) : (
-            <>
-              <Navigation2 className="h-4 w-4 text-green-500" />
-              <p>Click on the map to set your destination</p>
-            </>
-          )}
-        </div>
+        <MapSelectionHelper selectionStep={selectionStep} />
       )}
       <TooltipProvider>
         <Tooltip>
