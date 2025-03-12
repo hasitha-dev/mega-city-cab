@@ -48,6 +48,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [startMarker, setStartMarker] = useState<L.Marker | null>(null);
   const [endMarker, setEndMarker] = useState<L.Marker | null>(null);
   const [routeLine, setRouteLine] = useState<L.Polyline | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   // Set bounds for Colombo area (Western Province)
   const colomboBounds = L.latLngBounds(
@@ -55,9 +56,27 @@ const MapComponent: React.FC<MapComponentProps> = ({
     [7.0, 80.0]  // Northeast corner
   );
 
+  // Sample locations in Colombo for suggestions
+  const colomboLocations = [
+    "Colombo Fort", "Pettah", "Kollupitiya", "Bambalapitiya", "Wellawatte",
+    "Dehiwala", "Mount Lavinia", "Ratmalana", "Moratuwa", "Panadura",
+    "Nugegoda", "Maharagama", "Kottawa", "Piliyandala", "Kesbewa",
+    "Kaduwela", "Malabe", "Battaramulla", "Rajagiriya", "Borella",
+    "Maradana", "Dematagoda", "Kirulapone", "Narahenpita", "Thimbirigasyaya"
+  ];
+
+  // Function to get location suggestions
+  const getLocationSuggestions = (input: string) => {
+    if (!input) return [];
+    const normalizedInput = input.toLowerCase();
+    return colomboLocations.filter(location => 
+      location.toLowerCase().includes(normalizedInput)
+    );
+  };
+
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
-      // Initialize map
+      // Initialize map with light theme
       const map = L.map(mapRef.current, {
         maxBounds: colomboBounds,
         minZoom: 11
@@ -81,7 +100,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
       });
 
       // Add click event for location selection
-      if (selectionMode && onRouteSelect) {
+      if (selectionMode && onSelectLocation) {
         map.on('click', async (e) => {
           // Check if click is within bounds
           if (!colomboBounds.contains(e.latlng)) {
@@ -174,7 +193,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 map.fitBounds(bounds, { padding: [50, 50] });
                 
                 // Call onRouteSelect callback with start and end points
-                onRouteSelect([startPoint.lat, startPoint.lng], endPoint);
+                if (onRouteSelect) {
+                  onRouteSelect([startPoint.lat, startPoint.lng], endPoint);
+                }
               }
               
               if (onSelectLocation) {
@@ -196,7 +217,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         mapInstanceRef.current = null;
       }
     };
-  }, [selectionMode]); // Re-initialize map if selection mode changes
+  }, [selectionStep]); // Re-initialize map if selection step changes
 
   // Update the map when center or zoom change
   useEffect(() => {

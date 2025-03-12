@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import BookingForm from '@/components/booking/BookingForm';
 import RouteSelectionCard from '@/components/booking/RouteSelectionCard';
 import useBookingForm from '@/hooks/useBookingForm';
+import EditPopup from '@/components/booking/EditPopup';
 
 const Booking = () => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -70,6 +71,15 @@ const Booking = () => {
           </div>
         </div>
       </div>
+      
+      {/* Edit Popup */}
+      <EditPopup 
+        isOpen={bookingFormState.isEditModalOpen}
+        onClose={bookingFormState.closeEditModal}
+        onSave={bookingFormState.handleEditItem}
+        onDelete={bookingFormState.handleDeleteItem}
+        item={bookingFormState.currentEditItem}
+      />
     </div>
   );
 };

@@ -16,6 +16,10 @@ export const useBookingForm = () => {
   const [endPoint, setEndPoint] = useState<[number, number] | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [selectionStep, setSelectionStep] = useState<'pickup' | 'destination'>('pickup');
+  
+  // State for edit popup
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentEditItem, setCurrentEditItem] = useState<any>(null);
 
   // Handle route selection from map
   const handleRouteSelect = (start: [number, number], end: [number, number]) => {
@@ -40,13 +44,46 @@ export const useBookingForm = () => {
   const handleLocationSelect = (location: { lat: number; lng: number; name: string }) => {
     if (selectionStep === 'pickup') {
       setPickupLocation(location.name);
+      setStartPoint([location.lat, location.lng]);
       setSelectionStep('destination');
       toast.info("Pickup location selected. Now select your destination.");
     } else {
       setDestination(location.name);
+      setEndPoint([location.lat, location.lng]);
       setSelectionStep('pickup');
+      
+      // If we have both points, calculate the route
+      if (startPoint) {
+        handleRouteSelect(startPoint, [location.lat, location.lng]);
+      }
+      
       toast.success("Route selected successfully!");
     }
+  };
+
+  // Open edit modal
+  const openEditModal = (item: any) => {
+    setCurrentEditItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  // Close edit modal
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setCurrentEditItem(null);
+  };
+
+  // Handle editing item
+  const handleEditItem = (updatedItem: any) => {
+    // Here you would typically update the item in your database
+    toast.success("Item updated successfully!");
+    closeEditModal();
+  };
+
+  // Handle deleting item
+  const handleDeleteItem = (item: any) => {
+    // Here you would typically delete the item from your database
+    toast.success("Item deleted successfully!");
   };
 
   // Reset form
@@ -89,7 +126,13 @@ export const useBookingForm = () => {
     setSelectionStep,
     handleRouteSelect,
     handleLocationSelect,
-    resetForm
+    resetForm,
+    isEditModalOpen,
+    currentEditItem,
+    openEditModal,
+    closeEditModal,
+    handleEditItem,
+    handleDeleteItem
   };
 };
 
