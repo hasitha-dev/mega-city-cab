@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from "@/components/ui/popover";
+import MapComponent from '@/components/MapComponent';
 
 interface LocationInputProps {
   value: string;
@@ -16,6 +17,7 @@ interface LocationInputProps {
   onLocationSelect: (location: { lat: number; lng: number; name: string }) => void;
   placeholder: string;
   label: string;
+  selectionStep?: 'pickup' | 'destination';
 }
 
 const LocationInput: React.FC<LocationInputProps> = ({
@@ -23,7 +25,8 @@ const LocationInput: React.FC<LocationInputProps> = ({
   onChange,
   onLocationSelect,
   placeholder,
-  label
+  label,
+  selectionStep = 'pickup'
 }) => {
   const [suggestions, setSuggestions] = useState<Array<{id: string, name: string, lat: number, lng: number}>>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,6 +101,12 @@ const LocationInput: React.FC<LocationInputProps> = ({
     alert('Drop functionality coming soon! You can use the map button to select a location.');
   };
 
+  const handleMapLocationSelect = (location: { lat: number; lng: number; name: string }) => {
+    onChange(location.name);
+    onLocationSelect(location);
+    setIsMapOpen(false);
+  };
+
   return (
     <div className="relative">
       <label className="text-sm font-medium block mb-1">{label}</label>
@@ -138,11 +147,15 @@ const LocationInput: React.FC<LocationInputProps> = ({
               <p className="text-xs text-muted-foreground mb-4">
                 Click on the map to choose your {label.toLowerCase()} location
               </p>
-              <div className="h-40 bg-muted rounded-md flex items-center justify-center">
-                <p className="text-sm text-center text-muted-foreground">
-                  Map selection component will be displayed here
-                </p>
-                {/* In a real implementation, you'd embed a mini-map here */}
+              <div className="h-60 rounded-md overflow-hidden">
+                <MapComponent 
+                  center={[6.9271, 79.8612]}
+                  zoom={12}
+                  className="h-full w-full"
+                  selectionMode={true}
+                  onSelectLocation={handleMapLocationSelect}
+                  selectionStep={selectionStep}
+                />
               </div>
             </div>
           </PopoverContent>

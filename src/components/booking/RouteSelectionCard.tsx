@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import MapComponent from '@/components/MapComponent';
 import { MapPin, Navigation, Route } from 'lucide-react';
 
 interface RouteSelectionCardProps {
@@ -19,7 +18,6 @@ interface RouteSelectionCardProps {
 }
 
 const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
-  mapCenter,
   pickupLocation,
   destination,
   pickupDate,
@@ -27,33 +25,18 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
   vehicleType,
   passengers,
   distance,
-  selectionStep,
-  handleLocationSelect,
-  handleRouteSelect
 }) => {
   return (
     <Card className="bg-card overflow-hidden border border-gray-200">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2">
           <Route className="h-5 w-5 text-primary" />
-          Route Selection
+          Route Details
         </CardTitle>
-        <CardDescription>Select pickup and destination in Colombo area</CardDescription>
+        <CardDescription>Your selected route information</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="h-[600px]">
-            <MapComponent 
-              center={[6.9271, 79.8612]} // Colombo center
-              zoom={12}
-              className="h-full w-full"
-              selectionMode={true}
-              onSelectLocation={handleLocationSelect}
-              onRouteSelect={handleRouteSelect}
-              selectionStep={selectionStep}
-            />
-          </div>
-          
           <div className="space-y-3 mt-2">
             {pickupLocation && (
               <div className="flex items-start space-x-2">
@@ -91,6 +74,21 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
                 </div>
               </div>
             )}
+            {distance !== null && (
+              <div className="flex items-start space-x-2">
+                <div className="w-4 h-4"></div> {/* Spacer for alignment */}
+                <div>
+                  <span className="text-sm font-medium block">Distance:</span>
+                  <p className="text-sm text-gray-600">{distance.toFixed(2)} km</p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="pt-4 mt-4 border-t border-border">
+            <p className="text-sm text-muted-foreground">
+              Use the map selection buttons in the location fields to view and select your pickup and destination points.
+            </p>
           </div>
         </div>
       </CardContent>
