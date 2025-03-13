@@ -87,3 +87,31 @@ export const calculateDistance = (start: [number, number], end: [number, number]
   
   return distance;
 };
+
+// Function to calculate fare based on distance and vehicle type
+export const calculateFare = (distance: number, vehicleType: string): number => {
+  // Base fare depends on vehicle type
+  const baseFares: { [key: string]: number } = {
+    sedan: 200,
+    suv: 300,
+    van: 400,
+    luxury: 600
+  };
+  
+  // Rate per kilometer depends on vehicle type
+  const ratePerKm: { [key: string]: number } = {
+    sedan: 50,
+    suv: 70,
+    van: 90,
+    luxury: 120
+  };
+  
+  const baseFare = baseFares[vehicleType] || 200; // Default to sedan fare if vehicle type not found
+  const rate = ratePerKm[vehicleType] || 50; // Default to sedan rate if vehicle type not found
+  
+  // Calculate total fare based on distance
+  const distanceFare = distance * rate;
+  
+  // Return total fare (base fare + distance fare)
+  return baseFare + distanceFare;
+};
