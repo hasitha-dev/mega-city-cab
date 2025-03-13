@@ -47,7 +47,7 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
                   <div className="absolute left-[-8px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
                   <div className="pl-4">
                     <span className="text-xs font-medium uppercase text-blue-500 block">Pickup</span>
-                    <p className="text-sm font-medium">{pickupLocation}</p>
+                    <p className="text-sm font-medium break-words">{pickupLocation}</p>
                   </div>
                 </div>
                 
@@ -55,7 +55,7 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
                   <div className="absolute left-[-8px] top-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white"></div>
                   <div className="pl-4">
                     <span className="text-xs font-medium uppercase text-green-500 block">Destination</span>
-                    <p className="text-sm font-medium">{destination}</p>
+                    <p className="text-sm font-medium break-words">{destination}</p>
                   </div>
                 </div>
               </div>

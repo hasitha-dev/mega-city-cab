@@ -265,31 +265,25 @@ const Booking = () => {
                       </h3>
 
                       <div className="space-y-6">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <div className="flex items-start gap-3 bg-muted/10 p-3 rounded-md">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
                             <span className="text-blue-600 font-bold text-sm">A</span>
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm text-muted-foreground">Pickup Location</p>
-                            <p className="font-medium">{bookingFormState.pickupLocation}</p>
+                            <p className="text-sm font-medium text-primary/80">Pickup Location</p>
+                            <p className="text-sm mt-1 break-words">{bookingFormState.pickupLocation}</p>
                           </div>
                         </div>
 
-                        <div className="relative pl-5 ml-1.5 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-gray-200">
-                          <div className="w-3 h-3 bg-gray-200 rounded-full absolute -left-1"></div>
-                          <div className="w-3 h-3 bg-gray-200 rounded-full absolute -left-1 top-1/2 -translate-y-1/2"></div>
-                          <div className="w-3 h-3 bg-gray-200 rounded-full absolute -left-1 bottom-0"></div>
-                        </div>
+                        <div className="w-0.5 bg-gray-200 h-6 mx-auto"></div>
 
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <div className="flex items-start gap-3 bg-muted/10 p-3 rounded-md">
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
                             <span className="text-green-600 font-bold text-sm">B</span>
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm text-muted-foreground">Destination</p>
-                            <div className="p-1 rounded mt-1">
-                              <p className="font-medium">{bookingFormState.destination}</p>
-                            </div>
+                            <p className="text-sm font-medium text-primary/80">Destination</p>
+                            <p className="text-sm mt-1 break-words">{bookingFormState.destination}</p>
                           </div>
                         </div>
                       </div>
@@ -397,7 +391,7 @@ const Booking = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-primary bg-primary/5 border-primary/20 hover:bg-primary/10 flex items-center gap-1.5"
+                      className="text-primary hover:bg-primary/10 flex items-center gap-1.5 border-primary/20 shadow-sm"
                       onClick={openInvoiceDetails}
                     >
                       <FileText className="h-4 w-4" />
