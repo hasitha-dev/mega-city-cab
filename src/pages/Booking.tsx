@@ -40,7 +40,7 @@ const Booking = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const queryParams = new URLSearchParams(location.search);
-  const editBookingId = queryParams.get('edit');
+  const editBookingId = queryParams.get("edit");
 
   useEffect(() => {
     const loadBookingData = async () => {
@@ -49,33 +49,39 @@ const Booking = () => {
       try {
         setIsLoadingBooking(true);
         const bookingData = await fetchBookingById(editBookingId);
-        
+
         if (bookingData) {
           bookingFormState.setPickupLocation(bookingData.pickupAddress);
           bookingFormState.setDestination(bookingData.destinationAddress);
-          
+
           const bookingDateTime = new Date(bookingData.bookingTime);
-          const dateString = bookingDateTime.toISOString().split('T')[0];
+          const dateString = bookingDateTime.toISOString().split("T")[0];
           const timeString = bookingDateTime.toTimeString().substring(0, 5);
-          
+
           bookingFormState.setPickupDate(dateString);
           bookingFormState.setPickupTime(timeString);
-          
+
           if (bookingData.pickupLat && bookingData.pickupLng) {
-            bookingFormState.setStartPoint([bookingData.pickupLat, bookingData.pickupLng]);
+            bookingFormState.setStartPoint([
+              bookingData.pickupLat,
+              bookingData.pickupLng,
+            ]);
           }
-          
+
           if (bookingData.destinationLat && bookingData.destinationLng) {
-            bookingFormState.setEndPoint([bookingData.destinationLat, bookingData.destinationLng]);
+            bookingFormState.setEndPoint([
+              bookingData.destinationLat,
+              bookingData.destinationLng,
+            ]);
           }
-          
+
           if (bookingFormState.startPoint && bookingFormState.endPoint) {
             bookingFormState.handleRouteSelect(
-              bookingFormState.startPoint, 
+              bookingFormState.startPoint,
               bookingFormState.endPoint
             );
           }
-          
+
           toast.success("Booking loaded for editing");
         } else {
           toast.error("Booking not found");
@@ -114,14 +120,16 @@ const Booking = () => {
   const handleSaveBooking = async () => {
     try {
       setIsSaving(true);
-      const user = JSON.parse(localStorage.getItem("user") || '{"email":"user@example.com"}');
+      const user = JSON.parse(
+        localStorage.getItem("user") || '{"email":"user@example.com"}'
+      );
       const customerEmail = user?.email || "";
-      
+
       const method = editBookingId ? "PUT" : "POST";
-      const url = editBookingId 
-        ? `http://localhost:8070/api/booking/${editBookingId}` 
+      const url = editBookingId
+        ? `http://localhost:8070/api/booking/${editBookingId}`
         : "http://localhost:8070/api/booking";
-      
+
       const bookingData = {
         customerEmail: customerEmail,
         startLocation: bookingFormState.pickupLocation,
@@ -133,20 +141,23 @@ const Booking = () => {
         vehicleType: bookingFormState.vehicleType,
         fare: calculateFare(
           bookingFormState.distance || 0,
-          bookingFormState.vehicleType || 'sedan'
+          bookingFormState.vehicleType || "sedan"
         ),
       };
-      
+
       const response = await fetch(url, {
         method: method,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
         body: JSON.stringify(bookingData),
       });
-      
+
       if (response.ok) {
-        toast.success(`Booking ${editBookingId ? 'updated' : 'created'} successfully!`);
+        toast.success(
+          `Booking ${editBookingId ? "updated" : "created"} successfully!`
+        );
         navigate("/dashboard");
       } else {
         toast.error("Failed to save booking");
@@ -186,7 +197,7 @@ const Booking = () => {
   const getFare = () => {
     return calculateFare(
       bookingFormState.distance || 0,
-      bookingFormState.vehicleType || 'sedan'
+      bookingFormState.vehicleType || "sedan"
     );
   };
 
@@ -200,8 +211,8 @@ const Booking = () => {
             {editBookingId ? "Edit Booking" : "Book a Vehicle"}
           </h1>
           <p className="text-muted-foreground mt-2">
-            {editBookingId 
-              ? "Update your booking details below" 
+            {editBookingId
+              ? "Update your booking details below"
               : "Create a new booking by filling out the form below"}
           </p>
         </header>
@@ -221,18 +232,28 @@ const Booking = () => {
               <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-6 border-b relative">
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-bold">Booking Confirmation</h2>
-                  <Badge variant="outline" className="absolute right-6 top-6 bg-green-100 text-green-800 border-green-200 px-3 py-1">
+                  <Badge
+                    variant="outline"
+                    className="absolute right-6 top-6 bg-green-100 text-green-800 border-green-200 px-3 py-1"
+                  >
                     <span className="h-2 w-2 bg-green-600 rounded-full mr-2 inline-block"></span>
                     Confirmed
                   </Badge>
                 </div>
-                
+
                 <div className="mt-10 flex flex-wrap gap-4 items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Booking Reference</p>
-                    <p className="font-medium text-lg">{Math.random().toString(36).substring(2, 10).toUpperCase()}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Booking Reference
+                    </p>
+                    <p className="font-medium text-lg">
+                      {Math.random()
+                        .toString(36)
+                        .substring(2, 10)
+                        .toUpperCase()}
+                    </p>
                   </div>
-                  
+
                   <Button
                     variant="default"
                     size="lg"
@@ -267,11 +288,17 @@ const Booking = () => {
                       <div className="space-y-6">
                         <div className="flex items-start gap-3 bg-muted/10 p-3 rounded-md">
                           <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
-                            <span className="text-blue-600 font-bold text-sm">A</span>
+                            <span className="text-blue-600 font-bold text-sm">
+                              A
+                            </span>
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-primary/80">Pickup Location</p>
-                            <p className="text-sm mt-1 break-words">{bookingFormState.pickupLocation}</p>
+                            <p className="text-sm font-medium text-primary/80">
+                              Pickup Location
+                            </p>
+                            <p className="text-sm mt-1 break-words">
+                              {bookingFormState.pickupLocation}
+                            </p>
                           </div>
                         </div>
 
@@ -279,11 +306,17 @@ const Booking = () => {
 
                         <div className="flex items-start gap-3 bg-muted/10 p-3 rounded-md">
                           <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
-                            <span className="text-green-600 font-bold text-sm">B</span>
+                            <span className="text-green-600 font-bold text-sm">
+                              B
+                            </span>
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-primary/80">Destination</p>
-                            <p className="text-sm mt-1 break-words">{bookingFormState.destination}</p>
+                            <p className="text-sm font-medium text-primary/80">
+                              Destination
+                            </p>
+                            <p className="text-sm mt-1 break-words">
+                              {bookingFormState.destination}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -298,22 +331,34 @@ const Booking = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm text-muted-foreground">Date</p>
-                          <p className="font-medium">{bookingFormState.pickupDate}</p>
+                          <p className="font-medium">
+                            {bookingFormState.pickupDate}
+                          </p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Time</p>
-                          <p className="font-medium">{bookingFormState.pickupTime}</p>
+                          <p className="font-medium">
+                            {bookingFormState.pickupTime}
+                          </p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-muted-foreground">Vehicle</p>
-                          <p className="font-medium capitalize">{bookingFormState.vehicleType}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Vehicle
+                          </p>
+                          <p className="font-medium capitalize">
+                            {bookingFormState.vehicleType}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Passengers</p>
-                          <p className="font-medium">{bookingFormState.passengers}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Passengers
+                          </p>
+                          <p className="font-medium">
+                            {bookingFormState.passengers}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -328,46 +373,71 @@ const Booking = () => {
 
                       <div className="space-y-3 pb-4">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Distance</span>
-                          <span>{bookingFormState.distance?.toFixed(2)} km</span>
+                          <span className="text-muted-foreground">
+                            Distance
+                          </span>
+                          <span>
+                            {bookingFormState.distance?.toFixed(2)} km
+                          </span>
                         </div>
 
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Base fare</span>
-                          <span>LKR {{
-                            sedan: "200",
-                            suv: "300",
-                            van: "400",
-                            luxury: "600",
-                          }[bookingFormState.vehicleType || 'sedan']}</span>
+                          <span className="text-muted-foreground">
+                            Base fare
+                          </span>
+                          <span>
+                            LKR{" "}
+                            {
+                              {
+                                sedan: "200",
+                                suv: "300",
+                                van: "400",
+                                luxury: "600",
+                              }[bookingFormState.vehicleType || "sedan"]
+                            }
+                          </span>
                         </div>
 
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Rate per km</span>
-                          <span>LKR {{
-                            sedan: "50",
-                            suv: "65",
-                            van: "80",
-                            luxury: "100",
-                          }[bookingFormState.vehicleType || 'sedan']}</span>
+                          <span className="text-muted-foreground">
+                            Rate per km
+                          </span>
+                          <span>
+                            LKR{" "}
+                            {
+                              {
+                                sedan: "50",
+                                suv: "65",
+                                van: "80",
+                                luxury: "100",
+                              }[bookingFormState.vehicleType || "sedan"]
+                            }
+                          </span>
                         </div>
                       </div>
 
                       <div className="pt-4 border-t">
                         <div className="flex justify-between items-center text-lg font-semibold">
                           <span>Total Fare</span>
-                          <span className="text-primary">LKR {getFare().toFixed(2)}</span>
+                          <span className="text-primary">
+                            LKR {getFare().toFixed(2)}
+                          </span>
                         </div>
                       </div>
 
                       <div className="mt-6 pt-6 border-t border-dashed space-y-3">
                         <h4 className="font-medium">Payment Methods</h4>
                         <div className="flex gap-2">
-                          <Badge variant="outline" className="px-3 py-1">Cash</Badge>
-                          <Badge variant="outline" className="px-3 py-1">Card on arrival</Badge>
+                          <Badge variant="outline" className="px-3 py-1">
+                            Cash
+                          </Badge>
+                          <Badge variant="outline" className="px-3 py-1">
+                            Card on arrival
+                          </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Payment will be collected upon completion of your journey
+                          Payment will be collected upon completion of your
+                          journey
                         </p>
                       </div>
 
@@ -377,8 +447,13 @@ const Booking = () => {
                             <Clock className="h-4 w-4 text-blue-600" />
                           </div>
                           <div className="text-sm text-blue-800">
-                            <p className="font-medium">Booking will expire in 30 minutes</p>
-                            <p className="text-xs mt-1">Please confirm your booking by clicking the Save button</p>
+                            <p className="font-medium">
+                              Booking will expire in 30 minutes
+                            </p>
+                            <p className="text-xs mt-1">
+                              Please confirm your booking by clicking the Save
+                              button
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -397,7 +472,7 @@ const Booking = () => {
                       <FileText className="h-4 w-4" />
                       View Full Details & Download
                     </Button>
-                    
+
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
@@ -408,7 +483,7 @@ const Booking = () => {
                         <Edit2 className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
-                      
+
                       <Button
                         variant="default"
                         size="sm"
@@ -455,8 +530,8 @@ const Booking = () => {
           </div>
         )}
       </div>
-      
-      <InvoiceDetails 
+
+      <InvoiceDetails
         isOpen={isInvoiceOpen}
         onClose={() => setIsInvoiceOpen(false)}
         bookingDetails={{
