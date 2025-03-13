@@ -42,7 +42,7 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="h-[500px]">
+          <div className="h-[600px]">
             <MapComponent 
               center={[6.9271, 79.8612]} // Colombo center
               zoom={12}

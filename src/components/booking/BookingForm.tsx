@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Calendar, Clock, Car } from 'lucide-react';
 import { toast } from 'sonner';
 import LocationInput from '@/components/map/LocationInput';
+import VehicleSelection from '@/components/VehicleSelection';
+import { Button } from '@/components/ui/button';
 
 interface BookingFormProps {
   pickupLocation: string;
@@ -22,6 +24,7 @@ interface BookingFormProps {
   endPoint: [number, number] | null;
   distance: number | null;
   handleLocationSelect: (location: { lat: number; lng: number; name: string }) => void;
+  resetForm?: () => void;
 }
 
 const BookingForm: React.FC<BookingFormProps> = ({
@@ -40,7 +43,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
   startPoint,
   endPoint,
   distance,
-  handleLocationSelect
+  handleLocationSelect,
+  resetForm
 }) => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -151,50 +155,44 @@ const BookingForm: React.FC<BookingFormProps> = ({
             </div>
           </div>
           
+          <VehicleSelection
+            selectedVehicle={vehicleType}
+            onVehicleSelect={setVehicleType}
+          />
+          
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Vehicle Preferences</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Vehicle Type</label>
-                <div className="relative">
-                  <Car className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <select 
-                    className="w-full pl-10 py-2 px-3 border bg-secondary/50 rounded-md"
-                    value={vehicleType}
-                    onChange={(e) => setVehicleType(e.target.value)}
-                  >
-                    <option value="">Select vehicle type</option>
-                    <option value="sedan">Sedan</option>
-                    <option value="suv">SUV</option>
-                    <option value="van">Van</option>
-                    <option value="luxury">Luxury</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Number of Passengers</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  placeholder="Number of passengers"
-                  className="w-full py-2 px-3 border bg-secondary/50 rounded-md"
-                  value={passengers}
-                  onChange={(e) => setPassengers(Number(e.target.value))}
-                />
-              </div>
+            <h3 className="text-lg font-medium">Passenger Information</h3>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Number of Passengers</label>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                placeholder="Number of passengers"
+                className="w-full py-2 px-3 border bg-secondary/50 rounded-md"
+                value={passengers}
+                onChange={(e) => setPassengers(Number(e.target.value))}
+              />
             </div>
           </div>
           
-          <div className="pt-4">
+          <div className="pt-4 flex gap-4">
             <button
               type="submit"
-              className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
+              className="flex-1 bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
             >
               Book Vehicle
             </button>
+            {resetForm && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="flex-1" 
+                onClick={resetForm}
+              >
+                Reset Form
+              </Button>
+            )}
           </div>
         </form>
       </CardContent>

@@ -1,11 +1,9 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Car, MapPin, User, Sparkles, Shield, Star } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
 
 const Index = () => {
   // Features section
@@ -123,8 +121,8 @@ const Index = () => {
                 <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent opacity-80 mix-blend-overlay z-10" />
                   <img 
-                    src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" 
-                    alt="Premium luxury car"
+                    src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" 
+                    alt="Luxury car interior"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.src = '/placeholder.svg';
