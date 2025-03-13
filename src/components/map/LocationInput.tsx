@@ -1,8 +1,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { getLocationSuggestions } from '@/utils/mapUtils';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, Map } from 'lucide-react';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
 
 interface LocationInputProps {
   value: string;
@@ -22,6 +28,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
   const [suggestions, setSuggestions] = useState<Array<{id: string, name: string, lat: number, lng: number}>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -73,42 +80,90 @@ const LocationInput: React.FC<LocationInputProps> = ({
     setShowSuggestions(false);
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.add('bg-primary/10', 'border-primary');
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+    
+    // This is a simplified example - in a real app, you'd parse coordinates from the dropped data
+    // For now, we'll just show a notification that this feature is coming soon
+    alert('Drop functionality coming soon! You can use the map button to select a location.');
+  };
+
   return (
     <div className="relative">
       <label className="text-sm font-medium block mb-1">{label}</label>
-      <div className="relative">
-        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input
-          ref={inputRef}
-          type="text"
-          placeholder={placeholder}
-          className="pl-10"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={() => setShowSuggestions(true)}
-        />
-        {isLoading && (
-          <div className="absolute right-3 top-3">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          </div>
-        )}
+      <div className="relative flex">
+        <div className="relative flex-1">
+          <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            ref={inputRef}
+            type="text"
+            placeholder={placeholder}
+            className="pl-10 pr-10"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={() => setShowSuggestions(true)}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          />
+          {isLoading && (
+            <div className="absolute right-3 top-3">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        <Popover open={isMapOpen} onOpenChange={setIsMapOpen}>
+          <PopoverTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="ml-2"
+            >
+              <Map className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0" align="end">
+            <div className="p-4">
+              <h4 className="text-sm font-medium mb-2">Select on Map</h4>
+              <p className="text-xs text-muted-foreground mb-4">
+                Click on the map to choose your {label.toLowerCase()} location
+              </p>
+              <div className="h-40 bg-muted rounded-md flex items-center justify-center">
+                <p className="text-sm text-center text-muted-foreground">
+                  Map selection component will be displayed here
+                </p>
+                {/* In a real implementation, you'd embed a mini-map here */}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
       
       {showSuggestions && suggestions.length > 0 && (
         <div 
           ref={suggestionsRef} 
-          className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-auto"
+          className="absolute z-10 mt-1 w-full bg-card shadow-lg rounded-md border border-border max-h-60 overflow-auto"
         >
           <ul className="py-1">
             {suggestions.map((suggestion) => (
               <li 
                 key={suggestion.id}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                className="px-4 py-2 hover:bg-muted cursor-pointer text-sm"
                 onClick={() => handleSelect(suggestion)}
               >
                 <div className="flex items-start">
-                  <MapPin className="h-4 w-4 mt-0.5 mr-2 flex-shrink-0 text-gray-500" />
-                  <span className="text-gray-800">{suggestion.name}</span>
+                  <MapPin className="h-4 w-4 mt-0.5 mr-2 flex-shrink-0 text-primary" />
+                  <span>{suggestion.name}</span>
                 </div>
               </li>
             ))}

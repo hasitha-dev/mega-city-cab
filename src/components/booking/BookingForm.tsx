@@ -1,11 +1,14 @@
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, Car } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Calendar, Clock, Car, DollarSign, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import LocationInput from '@/components/map/LocationInput';
 import VehicleSelection from '@/components/VehicleSelection';
 import { Button } from '@/components/ui/button';
+import { calculateFare } from '@/utils/mapUtils';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 
 interface BookingFormProps {
   pickupLocation: string;
@@ -25,6 +28,7 @@ interface BookingFormProps {
   distance: number | null;
   handleLocationSelect: (location: { lat: number; lng: number; name: string }) => void;
   resetForm?: () => void;
+  onSubmit: (data: any) => void;
 }
 
 const BookingForm: React.FC<BookingFormProps> = ({
@@ -44,8 +48,20 @@ const BookingForm: React.FC<BookingFormProps> = ({
   endPoint,
   distance,
   handleLocationSelect,
-  resetForm
+  resetForm,
+  onSubmit
 }) => {
+  const [estimatedFare, setEstimatedFare] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (distance && vehicleType) {
+      const fare = calculateFare(distance, vehicleType);
+      setEstimatedFare(fare);
+    } else {
+      setEstimatedFare(null);
+    }
+  }, [distance, vehicleType]);
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
@@ -59,12 +75,14 @@ const BookingForm: React.FC<BookingFormProps> = ({
       toast.error("Please select both pickup and destination points on the map");
       return;
     }
+
+    if (passengers <= 0) {
+      toast.error("Please select at least 1 passenger");
+      return;
+    }
     
     // Here you would typically send the booking data to your backend
-    toast.success("Booking submitted successfully!");
-    
-    // Mock data for demonstration purposes
-    console.log({
+    const bookingData = {
       pickupLocation,
       destination,
       pickupDate,
@@ -73,8 +91,11 @@ const BookingForm: React.FC<BookingFormProps> = ({
       passengers,
       startPoint,
       endPoint,
-      distance
-    });
+      distance,
+      estimatedFare
+    };
+    
+    onSubmit(bookingData);
   };
 
   const handlePickupLocationSelect = (location: { lat: number; lng: number; name: string }) => {
@@ -93,16 +114,21 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   return (
     <Card className="bg-card">
-      <CardHeader>
-        <CardTitle>Booking Details</CardTitle>
-        <CardDescription>Enter the details for your vehicle reservation</CardDescription>
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl">Book Your Ride</CardTitle>
+        <CardDescription>Enter the details for your journey</CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-6" onSubmit={handleSubmit} id="booking-form">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Pickup Information</h3>
+            <h3 className="text-lg font-medium flex items-center gap-2">
+              <span className="p-1.5 rounded-full bg-primary/10">
+                <Calendar className="h-4 w-4 text-primary" />
+              </span>
+              Trip Details
+            </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <LocationInput
                 value={pickupLocation}
                 onChange={setPickupLocation}
@@ -111,40 +137,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 label="Pickup Location"
               />
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Pickup Date</label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="date"
-                    className="w-full pl-10 py-2 px-3 border bg-secondary/50 rounded-md"
-                    value={pickupDate}
-                    onChange={(e) => setPickupDate(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Pickup Time</label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="time"
-                    className="w-full pl-10 py-2 px-3 border bg-secondary/50 rounded-md"
-                    value={pickupTime}
-                    onChange={(e) => setPickupTime(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Destination Information</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <LocationInput
                 value={destination}
                 onChange={setDestination}
@@ -153,49 +145,134 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 label="Destination"
               />
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Pickup Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="date"
+                    className="w-full pl-10 py-2 px-3 border rounded-md bg-background"
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Pickup Time</label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="time"
+                    className="w-full pl-10 py-2 px-3 border rounded-md bg-background"
+                    value={pickupTime}
+                    onChange={(e) => setPickupTime(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
           
-          <VehicleSelection
-            selectedVehicle={vehicleType}
-            onVehicleSelect={setVehicleType}
-          />
+          <Separator />
           
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Passenger Information</h3>
+            <h3 className="text-lg font-medium flex items-center gap-2">
+              <span className="p-1.5 rounded-full bg-primary/10">
+                <Users className="h-4 w-4 text-primary" />
+              </span>
+              Passenger Information
+            </h3>
+            
             <div className="space-y-2">
               <label className="text-sm font-medium">Number of Passengers</label>
-              <input
+              <Input
                 type="number"
                 min="1"
                 max="10"
                 placeholder="Number of passengers"
-                className="w-full py-2 px-3 border bg-secondary/50 rounded-md"
                 value={passengers}
                 onChange={(e) => setPassengers(Number(e.target.value))}
+                className="w-full"
               />
             </div>
           </div>
           
-          <div className="pt-4 flex gap-4">
-            <button
-              type="submit"
-              className="flex-1 bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
-            >
-              Book Vehicle
-            </button>
-            {resetForm && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="flex-1" 
-                onClick={resetForm}
-              >
-                Reset Form
-              </Button>
-            )}
-          </div>
+          <Separator />
+          
+          <VehicleSelection
+            selectedVehicle={vehicleType}
+            onVehicleSelect={setVehicleType}
+            passengerCount={passengers}
+          />
+          
+          {distance && estimatedFare && (
+            <>
+              <Separator />
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium flex items-center gap-2">
+                  <span className="p-1.5 rounded-full bg-primary/10">
+                    <DollarSign className="h-4 w-4 text-primary" />
+                  </span>
+                  Fare Estimate
+                </h3>
+                
+                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Distance:</span>
+                    <span className="font-medium">{distance.toFixed(2)} km</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Base fare:</span>
+                    <span className="font-medium">LKR {
+                      {
+                        'sedan': '200',
+                        'suv': '300', 
+                        'van': '400',
+                        'luxury': '600'
+                      }[vehicleType] || '200'
+                    }</span>
+                  </div>
+                  
+                  <Separator className="my-2" />
+                  
+                  <div className="flex justify-between items-center text-lg">
+                    <span className="font-medium">Estimated Total:</span>
+                    <span className="font-bold text-primary">LKR {estimatedFare.toFixed(2)}</span>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground mt-2">
+                    *Fare estimate may vary based on actual route, traffic conditions, and waiting time.
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </form>
       </CardContent>
+      <CardFooter className="flex justify-end gap-4 border-t p-6">
+        {resetForm && (
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={resetForm}
+          >
+            Reset
+          </Button>
+        )}
+        <Button 
+          type="submit"
+          form="booking-form"
+          disabled={!pickupLocation || !destination || !pickupDate || !pickupTime || !vehicleType || !distance}
+          className="px-8"
+        >
+          Book Ride
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
