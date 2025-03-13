@@ -13,7 +13,9 @@ import {
   FileText, 
   CheckCircle2,
   X,
-  Car
+  Car,
+  Edit,
+  Trash
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchBookings, updateBookingStatus, Booking } from '@/services/api';
@@ -24,6 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
+import EditPopup from './booking/EditPopup';
+import ConfirmationDialog from './ConfirmationDialog';
 
 const BookingList = () => {
   const navigate = useNavigate();
@@ -31,6 +35,9 @@ const BookingList = () => {
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState<Booking | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const loadBookings = async () => {
@@ -72,6 +79,46 @@ const BookingList = () => {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleEdit = (booking: Booking) => {
+    setCurrentBooking(booking);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveBooking = (updatedBooking: Booking) => {
+    // In a real app, you would update the booking via API
+    // For now, we'll just update the local state
+    setBookings(prev => 
+      prev.map(booking => 
+        booking.id === updatedBooking.id 
+          ? { ...updatedBooking } 
+          : booking
+      )
+    );
+    setIsEditModalOpen(false);
+    toast({
+      title: 'Success',
+      description: 'Booking updated successfully!',
+    });
+  };
+
+  const handleDeletePrompt = (booking: Booking) => {
+    setCurrentBooking(booking);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteBooking = () => {
+    if (!currentBooking) return;
+    
+    // In a real app, you would delete the booking via API
+    // For now, we'll just update the local state
+    setBookings(prev => prev.filter(booking => booking.id !== currentBooking.id));
+    setIsDeleteDialogOpen(false);
+    toast({
+      title: 'Success',
+      description: 'Booking deleted successfully!',
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -166,33 +213,58 @@ const BookingList = () => {
                       )}
                     </div>
                     
-                    {isAdmin && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            Update Status
+                    <div className="flex items-center space-x-2">
+                      {(isAdmin || booking.status === 'pending') && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(booking)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'confirmed')}>
-                            <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" />
-                            Confirm
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'in-progress')}>
-                            <Car className="h-4 w-4 mr-2 text-purple-500" />
-                            In Progress
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'completed')}>
-                            <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
-                            Complete
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'cancelled')}>
-                            <X className="h-4 w-4 mr-2 text-red-500" />
-                            Cancel
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
+                          
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeletePrompt(booking)}
+                          >
+                            <Trash className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </>
+                      )}
+                      
+                      {isAdmin && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              Update Status
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'confirmed')}>
+                              <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" />
+                              Confirm
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'in-progress')}>
+                              <Car className="h-4 w-4 mr-2 text-purple-500" />
+                              In Progress
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'completed')}>
+                              <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                              Complete
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'cancelled')}>
+                              <X className="h-4 w-4 mr-2 text-red-500" />
+                              Cancel
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -200,6 +272,29 @@ const BookingList = () => {
           </div>
         )}
       </CardContent>
+      
+      {/* Edit Popup */}
+      {currentBooking && (
+        <EditPopup
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveBooking}
+          onDelete={handleDeletePrompt}
+          item={currentBooking}
+        />
+      )}
+      
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteBooking}
+        title="Delete Booking"
+        description="Are you sure you want to delete this booking? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
     </Card>
   );
 };

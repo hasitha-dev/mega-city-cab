@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -20,7 +21,6 @@ import {
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateFare } from "@/utils/mapUtils";
-import { date } from "yup";
 
 const Booking = () => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -45,9 +45,7 @@ const Booking = () => {
 
   const handleBookingSubmit = async (bookingData: any) => {
     setCurrentBooking(bookingData);
-
     setBookingCompleted(true);
-
     toast.success("Booking created successfully!");
   };
 
@@ -133,15 +131,6 @@ const Booking = () => {
                       <Edit2 className="h-4 w-4" />
                       Save
                     </Button>
-                    {/* <Button
-                      variant="destructive"
-                      size="sm"
-                      className="flex items-center gap-1"
-                      onClick={handleDeleteBooking}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </Button> */}
                   </div>
                 </div>
 
@@ -303,56 +292,14 @@ const Booking = () => {
                 handleLocationSelect={bookingFormState.handleLocationSelect}
                 resetForm={bookingFormState.resetForm}
                 onSubmit={handleBookingSubmit}
-                mapCenter={[0, 0]}
-                selectionStep={"pickup"}
-                handleRouteSelect={function (
-                  start: [number, number],
-                  end: [number, number]
-                ): void {
-                  throw new Error("Function not implemented.");
-                }}
-              />
-            </div>
-
-            {/* <div className="lg:col-span-1">
-              <RouteSelectionCard
                 mapCenter={bookingFormState.mapCenter}
-                pickupLocation={bookingFormState.pickupLocation}
-                destination={bookingFormState.destination}
-                pickupDate={bookingFormState.pickupDate}
-                pickupTime={bookingFormState.pickupTime}
-                vehicleType={bookingFormState.vehicleType}
-                passengers={bookingFormState.passengers}
-                distance={bookingFormState.distance}
                 selectionStep={bookingFormState.selectionStep}
-                handleLocationSelect={bookingFormState.handleLocationSelect}
                 handleRouteSelect={bookingFormState.handleRouteSelect}
               />
-            </div> */}
+            </div>
           </div>
         )}
       </div>
-
-      {/* Edit Popup */}
-      {/* <EditPopup
-        isOpen={bookingFormState.isEditModalOpen}
-        onClose={bookingFormState.closeEditModal}
-        onSave={bookingFormState.handleEditItem}
-        onDelete={bookingFormState.handleDeleteItem}
-        item={bookingFormState.currentEditItem}
-      /> */}
-
-      {/* Delete Confirmation Dialog */}
-      {/* <ConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="Delete Booking"
-        description="Are you sure you want to delete this booking? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
-        variant="destructive"
-      /> */}
     </div>
   );
 };
