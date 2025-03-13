@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -34,10 +35,161 @@ import {
   User,
 } from "lucide-react";
 import { toast } from "sonner";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
+
+// Define vehicle interfaces based on the provided Java entity
+interface Vehicle {
+  vehicle_id?: string;
+  vehicle_number: string;
+  vehicle_type: 'STANDARD' | 'PREMIUM' | 'SUV' | 'ELECTRIC' | 'HYBRID';
+  status: 'AVAILABLE' | 'UNAVAILABLE' | 'MAINTENANCE';
+  driver_id?: string;
+  driver_name: string;
+  driver_contact: string;
+  driver_nic: string;
+  driver_email: string;
+}
 
 const Admin = () => {
   const { user, isAuthenticated, isAdmin, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("vehicles");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+
+  // Vehicle form state
+  const [vehicleData, setVehicleData] = useState<Vehicle>({
+    vehicle_number: "",
+    vehicle_type: 'STANDARD',
+    status: 'AVAILABLE',
+    driver_name: "",
+    driver_contact: "",
+    driver_nic: "",
+    driver_email: "",
+  });
+
+  // Fetch vehicles from API
+  const fetchVehicles = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("http://localhost:8070/api/vehicle");
+      if (response.ok) {
+        const data = await response.json();
+        setVehicles(data);
+      } else {
+        toast.error("Failed to fetch vehicles");
+      }
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+      toast.error("Failed to connect to the server");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "vehicles") {
+      fetchVehicles();
+    }
+  }, [activeTab]);
+
+  // Handle input changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVehicleData({ ...vehicleData, [e.target.id]: e.target.value });
+  };
+
+  // Handle select changes
+  const handleSelectChange = (field: string, value: string) => {
+    setVehicleData({ ...vehicleData, [field]: value });
+  };
+
+  // Add vehicle function
+  const handleAddVehicle = async () => {
+    try {
+      const response = await fetch("http://localhost:8070/api/vehicle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(vehicleData),
+      });
+
+      if (response.ok) {
+        toast.success("Vehicle added successfully");
+        fetchVehicles();
+        resetForm();
+      } else {
+        const errorData = await response.json();
+        toast.error(`Failed to add vehicle: ${errorData.message || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error adding vehicle:", error);
+      toast.error("Failed to connect to the server");
+    }
+  };
+
+  // Edit vehicle function
+  const handleEditVehicle = (vehicle: Vehicle) => {
+    setVehicleData({
+      vehicle_id: vehicle.vehicle_id,
+      vehicle_number: vehicle.vehicle_number,
+      vehicle_type: vehicle.vehicle_type,
+      status: vehicle.status,
+      driver_id: vehicle.driver_id,
+      driver_name: vehicle.driver_name,
+      driver_contact: vehicle.driver_contact,
+      driver_nic: vehicle.driver_nic,
+      driver_email: vehicle.driver_email,
+    });
+  };
+
+  // Delete vehicle function
+  const handleDeleteClick = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedVehicle?.vehicle_id) return;
+    
+    try {
+      const response = await fetch(`http://localhost:8070/api/vehicle/${selectedVehicle.vehicle_id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast.success("Vehicle deleted successfully");
+        fetchVehicles();
+      } else {
+        toast.error("Failed to delete vehicle");
+      }
+    } catch (error) {
+      console.error("Error deleting vehicle:", error);
+      toast.error("Failed to connect to the server");
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setSelectedVehicle(null);
+    }
+  };
+
+  // Reset form
+  const resetForm = () => {
+    setVehicleData({
+      vehicle_number: "",
+      vehicle_type: 'STANDARD',
+      status: 'AVAILABLE',
+      driver_name: "",
+      driver_contact: "",
+      driver_nic: "",
+      driver_email: "",
+    });
+  };
+
+  // Handle driver function
+  function handleAddDriver(event: React.MouseEvent<HTMLButtonElement>): void {
+    toast.info("Driver management functionality coming soon");
+  }
 
   // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
@@ -55,25 +207,6 @@ const Admin = () => {
         Loading...
       </div>
     );
-  }
-  const [vehicleData, setVehicleData] = useState({
-    model: "",
-    plate: "",
-    status: "",
-    driverName: "",
-    driverContact: "",
-    driverNIC: "",
-    driverEmail: "",
-  });
-  const handleChange = (e) => {
-    setVehicleData({ ...vehicleData, [e.target.id]: e.target.value });
-  };
-  const handleAddVehicle = () => {
-    toast.success("Vehicle added successfully");
-  };
-
-  function handleAddDriver(event: React.MouseEvent<HTMLButtonElement>): void {
-    throw new Error("Function not implemented.");
   }
 
   return (
@@ -97,9 +230,9 @@ const Admin = () => {
               <Car className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">15</div>
+              <div className="text-3xl font-bold">{vehicles.length || 0}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                3 in maintenance
+                {vehicles.filter(v => v.status === 'MAINTENANCE').length || 0} in maintenance
               </p>
             </CardContent>
           </Card>
@@ -182,9 +315,9 @@ const Admin = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="in-use">In Use</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                      <SelectItem value="AVAILABLE">Available</SelectItem>
+                      <SelectItem value="UNAVAILABLE">Unavailable</SelectItem>
+                      <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -200,10 +333,10 @@ const Admin = () => {
                             Vehicle ID
                           </th>
                           <th scope="col" className="px-6 py-3">
-                            Model
+                            Model/Type
                           </th>
                           <th scope="col" className="px-6 py-3">
-                            Vehicle Id
+                            Vehicle Number
                           </th>
                           <th scope="col" className="px-6 py-3">
                             Status
@@ -217,78 +350,65 @@ const Admin = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {[
-                          {
-                            id: "V-1001",
-                            model: "Toyota Camry",
-                            plate: "ABC-1234",
-                            status: "Available",
-                            maintenance: "2023-04-15",
-                          },
-                          {
-                            id: "V-1002",
-                            model: "Honda Accord",
-                            plate: "XYZ-5678",
-                            status: "In Use",
-                            maintenance: "2023-03-22",
-                          },
-                          {
-                            id: "V-1003",
-                            model: "Ford Explorer",
-                            plate: "DEF-9101",
-                            status: "Maintenance",
-                            maintenance: "2023-05-10",
-                          },
-                          {
-                            id: "V-1004",
-                            model: "Tesla Model 3",
-                            plate: "GHI-1121",
-                            status: "Available",
-                            maintenance: "2023-02-18",
-                          },
-                          {
-                            id: "V-1005",
-                            model: "Hyundai Sonata",
-                            plate: "JKL-3141",
-                            status: "In Use",
-                            maintenance: "2023-04-01",
-                          },
-                        ].map((vehicle) => (
-                          <tr
-                            key={vehicle.id}
-                            className="bg-slate-700  border-b"
-                          >
-                            <td className="px-6 py-4 font-medium">
-                              {vehicle.id}
-                            </td>
-                            <td className="px-6 py-4">{vehicle.model}</td>
-                            <td className="px-6 py-4">{vehicle.plate}</td>
-                            <td className="px-6 py-4">
-                              <span
-                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                  vehicle.status === "Available"
-                                    ? "bg-green-100 text-green-800"
-                                    : vehicle.status === "In Use"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                                }`}
-                              >
-                                {vehicle.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">{vehicle.maintenance}</td>
-                            <td className="px-6 py-4">
-                              <div className="flex space-x-2">
-                                <Button variant="outline" size="sm">
-                                  Edit
-                                </Button>
-                                <Button variant="outline" size="sm">
-                                  View
-                                </Button>
-                              </div>
+                        {isLoading ? (
+                          <tr>
+                            <td colSpan={6} className="px-6 py-4 text-center">
+                              Loading vehicles...
                             </td>
                           </tr>
-                        ))}
+                        ) : vehicles.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="px-6 py-4 text-center">
+                              No vehicles found. Add your first vehicle below.
+                            </td>
+                          </tr>
+                        ) : (
+                          vehicles.map((vehicle) => (
+                            <tr
+                              key={vehicle.vehicle_id}
+                              className="bg-slate-700 border-b"
+                            >
+                              <td className="px-6 py-4 font-medium">
+                                {vehicle.vehicle_id?.substring(0, 8) || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 capitalize">{vehicle.vehicle_type.toLowerCase()}</td>
+                              <td className="px-6 py-4">{vehicle.vehicle_number}</td>
+                              <td className="px-6 py-4">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    vehicle.status === 'AVAILABLE'
+                                      ? "bg-green-100 text-green-800"
+                                      : vehicle.status === 'UNAVAILABLE'
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }`}
+                                >
+                                  {vehicle.status.charAt(0) + vehicle.status.slice(1).toLowerCase()}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">{vehicle.driver_name}</td>
+                              <td className="px-6 py-4">
+                                <div className="flex space-x-2">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => handleEditVehicle(vehicle)}
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="text-destructive hover:bg-destructive/10"
+                                    onClick={() => handleDeleteClick(vehicle)}
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -389,69 +509,116 @@ const Admin = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="model">Vehicle Model</Label>
-                    <Input id="model" placeholder="e.g. Toyota Camry" />
+                    <Label htmlFor="vehicle_number">Vehicle Number</Label>
+                    <Input 
+                      id="vehicle_number" 
+                      placeholder="e.g. ABC-1234" 
+                      value={vehicleData.vehicle_number}
+                      onChange={handleChange}
+                    />
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="plate">License Plate</Label>
-                    <Input id="plate" placeholder="e.g. ABC-1234" />
+                    <Label htmlFor="vehicle_type">Vehicle Type</Label>
+                    <Select 
+                      value={vehicleData.vehicle_type} 
+                      onValueChange={(value) => handleSelectChange('vehicle_type', value)}
+                    >
+                      <SelectTrigger id="vehicle_type">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="STANDARD">Standard</SelectItem>
+                        <SelectItem value="PREMIUM">Premium</SelectItem>
+                        <SelectItem value="SUV">SUV</SelectItem>
+                        <SelectItem value="ELECTRIC">Electric</SelectItem>
+                        <SelectItem value="HYBRID">Hybrid</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>
-                    <Select>
+                    <Select 
+                      value={vehicleData.status} 
+                      onValueChange={(value) => handleSelectChange('status', value)}
+                    >
                       <SelectTrigger id="status">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="unAvailabe">UnAvailabe</SelectItem>
+                        <SelectItem value="AVAILABLE">Available</SelectItem>
+                        <SelectItem value="UNAVAILABLE">Unavailable</SelectItem>
+                        <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                  
                   <div>
-                    <Label>Driver Name</Label>
+                    <Label htmlFor="driver_name">Driver Name</Label>
                     <Input
                       placeholder="e.g. John Smith"
-                      id="driverName"
+                      id="driver_name"
                       type="text"
+                      value={vehicleData.driver_name}
+                      onChange={handleChange}
                     />
                   </div>
                   <div>
-                    <Label>Driver Contact</Label>
+                    <Label htmlFor="driver_contact">Driver Contact</Label>
                     <Input
                       placeholder="e.g. (555) 123-4567"
-                      id="driverContact"
+                      id="driver_contact"
                       type="tel"
+                      value={vehicleData.driver_contact}
+                      onChange={handleChange}
                     />
                   </div>
                   <div>
-                    <Label>Driver NIC</Label>
+                    <Label htmlFor="driver_nic">Driver NIC</Label>
                     <Input
                       placeholder="e.g. 123456789V"
-                      id="driverNIC"
+                      id="driver_nic"
                       type="text"
+                      value={vehicleData.driver_nic}
+                      onChange={handleChange}
                     />
                   </div>
                   <div>
-                    <Label>Driver Email</Label>
+                    <Label htmlFor="driver_email">Driver Email</Label>
                     <Input
-                      placeholder="e.g. John@gmail.com"
-                      id="driverEmail"
+                      placeholder="e.g. john@example.com"
+                      id="driver_email"
                       type="email"
+                      value={vehicleData.driver_email}
+                      onChange={handleChange}
                     />
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button variant="outline" className="mr-2">
+                <Button variant="outline" className="mr-2" onClick={resetForm}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddVehicle}>Add Vehicle</Button>
+                <Button onClick={handleAddVehicle}>
+                  {vehicleData.vehicle_id ? 'Update Vehicle' : 'Add Vehicle'}
+                </Button>
               </CardFooter>
             </Card>
           </div>
         )}
+
+        {/* Confirmation Dialog for Delete */}
+        <ConfirmationDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Vehicle"
+          description="Are you sure you want to delete this vehicle? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          variant="destructive"
+        />
       </div>
     </div>
   );

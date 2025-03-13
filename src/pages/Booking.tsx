@@ -1,10 +1,9 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import BookingForm from "@/components/booking/BookingForm";
-import RouteSelectionCard from "@/components/booking/RouteSelectionCard";
 import useBookingForm from "@/hooks/useBookingForm";
 import EditPopup from "@/components/booking/EditPopup";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
@@ -12,30 +11,92 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeftCircle,
   Edit2,
-  Trash2,
-  MapPin,
   Calendar,
+  MapPin,
   UserCircle,
   Car,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateFare } from "@/utils/mapUtils";
+import { fetchBookingById, Booking as BookingType } from "@/services/api";
 
 const Booking = () => {
   const { user, isAuthenticated, loading } = useAuth();
   const bookingFormState = useBookingForm();
   const navigate = useNavigate();
+  const location = useLocation();
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isLoadingBooking, setIsLoadingBooking] = useState(false);
+
+  // Extract any query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const editBookingId = queryParams.get('edit');
+
+  // Fetch booking data if we're in edit mode
+  useEffect(() => {
+    const loadBookingData = async () => {
+      if (!editBookingId) return;
+
+      try {
+        setIsLoadingBooking(true);
+        const bookingData = await fetchBookingById(editBookingId);
+        
+        if (bookingData) {
+          // Set form values from booking data
+          bookingFormState.setPickupLocation(bookingData.pickupAddress);
+          bookingFormState.setDestination(bookingData.destinationAddress);
+          
+          // Convert ISO date to local date format
+          const bookingDateTime = new Date(bookingData.bookingTime);
+          const dateString = bookingDateTime.toISOString().split('T')[0];
+          const timeString = bookingDateTime.toTimeString().substring(0, 5);
+          
+          bookingFormState.setPickupDate(dateString);
+          bookingFormState.setPickupTime(timeString);
+          
+          // Set map points if available
+          if (bookingData.pickupLat && bookingData.pickupLng) {
+            bookingFormState.setStartPoint([bookingData.pickupLat, bookingData.pickupLng]);
+          }
+          
+          if (bookingData.destinationLat && bookingData.destinationLng) {
+            bookingFormState.setEndPoint([bookingData.destinationLat, bookingData.destinationLng]);
+          }
+          
+          // Calculate distance
+          if (bookingFormState.startPoint && bookingFormState.endPoint) {
+            bookingFormState.handleRouteSelect(
+              bookingFormState.startPoint, 
+              bookingFormState.endPoint
+            );
+          }
+          
+          toast.success("Booking loaded for editing");
+        } else {
+          toast.error("Booking not found");
+        }
+      } catch (error) {
+        console.error("Error loading booking:", error);
+        toast.error("Failed to load booking data");
+      } finally {
+        setIsLoadingBooking(false);
+      }
+    };
+
+    if (editBookingId && isAuthenticated) {
+      loadBookingData();
+    }
+  }, [editBookingId, isAuthenticated]);
 
   // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
     return <Navigate to="/login" />;
   }
 
-  if (loading) {
+  if (loading || isLoadingBooking) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         Loading...
@@ -50,14 +111,17 @@ const Booking = () => {
   };
 
   const handleSaveBooking = async () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const customerEmail = user?.email || "";
-    const resp = await fetch("http://localhost:8070/api/booking", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || '{"email":"user@example.com"}');
+      const customerEmail = user?.email || "";
+      
+      // Determine if we're updating or creating
+      const method = editBookingId ? "PUT" : "POST";
+      const url = editBookingId 
+        ? `http://localhost:8070/api/booking/${editBookingId}` 
+        : "http://localhost:8070/api/booking";
+      
+      const bookingData = {
         customerEmail: customerEmail,
         startLocation: bookingFormState.pickupLocation,
         destination: bookingFormState.destination,
@@ -67,11 +131,29 @@ const Booking = () => {
         distance: bookingFormState.distance,
         vehicleType: bookingFormState.vehicleType,
         fare: calculateFare(
-          bookingFormState.distance,
-          bookingFormState.vehicleType
+          bookingFormState.distance || 0,
+          bookingFormState.vehicleType || 'sedan'
         ),
-      }),
-    });
+      };
+      
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bookingData),
+      });
+      
+      if (response.ok) {
+        toast.success(`Booking ${editBookingId ? 'updated' : 'created'} successfully!`);
+        navigate("/dashboard");
+      } else {
+        toast.error("Failed to save booking");
+      }
+    } catch (error) {
+      console.error("Error saving booking:", error);
+      toast.error("Could not connect to server");
+    }
   };
 
   const handleUpdateBooking = () => {
@@ -100,9 +182,13 @@ const Booking = () => {
 
       <div className="container mx-auto pt-24 px-4 pb-8">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold">Book a Vehicle</h1>
+          <h1 className="text-3xl font-bold">
+            {editBookingId ? "Edit Booking" : "Book a Vehicle"}
+          </h1>
           <p className="text-muted-foreground mt-2">
-            Create a new booking by filling out the form below
+            {editBookingId 
+              ? "Update your booking details below" 
+              : "Create a new booking by filling out the form below"}
           </p>
         </header>
 
