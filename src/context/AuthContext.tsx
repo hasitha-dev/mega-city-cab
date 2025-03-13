@@ -81,7 +81,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       user.name = email;
       console.log("User", user);
 
-      localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("accessToken", user.token);
       const dataDecoded: any = jwtDecode(user.token);
       toast.success("Login successful");
@@ -97,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser(user);
         navigate("/dashboard");
       }
+      localStorage.setItem("user", JSON.stringify(user));
     } catch (error) {
       toast.error(
         "Login failed: " +

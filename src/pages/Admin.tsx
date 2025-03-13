@@ -40,8 +40,8 @@ import ConfirmationDialog from "@/components/ConfirmationDialog";
 interface Vehicle {
   vehicle_id?: string;
   vehicle_number: string;
-  vehicle_type: "STANDARD" | "PREMIUM" | "SUV" | "ELECTRIC" | "HYBRID";
-  status: "AVAILABLE" | "UNAVAILABLE" | "MAINTENANCE";
+  vehicle_type: "SEDAN" | "SUV" | "VAN" | "LUXURY";
+  status: "AVAILABLE" | "UNAVAILABLE";
   driver_id?: string;
   driver_name: string;
   driver_contact: string;
@@ -60,7 +60,7 @@ const Admin = () => {
   // Vehicle form state
   const [vehicleData, setVehicleData] = useState<Vehicle>({
     vehicle_number: "",
-    vehicle_type: "STANDARD",
+    vehicle_type: "LUXURY",
     status: "AVAILABLE",
     driver_name: "",
     driver_contact: "",
@@ -72,7 +72,7 @@ const Admin = () => {
   const fetchVehicles = async () => {
     try {
       setIsLoading(true);
-      console.log("Token", localStorage.getItem("token"));
+      console.log("Token", localStorage.getItem("accessToken"));
 
       const response = await fetch("http://localhost:8070/api/vehicle", {
         headers: {
@@ -82,7 +82,25 @@ const Admin = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        setVehicles(data);
+        console.log("Data", data.data);
+        const dataArr = JSON.parse(data.data);
+        if (Array.isArray(dataArr)) {
+          const vehicles: Vehicle[] = dataArr.map((v: any) => ({
+            vehicle_id: v.vehicle_id,
+            vehicle_number: v.vehicle_number,
+            vehicle_type: v.vehicle_type,
+            status: v.status,
+            driver_id: v.driver_id,
+            driver_name: v.driver_name,
+            driver_contact: v.driver_contact,
+            driver_nic: v.driver_nic,
+            driver_email: v.driver_email,
+          }));
+          setVehicles(vehicles);
+        } else {
+          console.error("data.data is not an array", typeof dataArr);
+          toast.error("Unexpected response format");
+        }
       } else {
         toast.error("Failed to fetch vehicles");
       }
@@ -192,7 +210,7 @@ const Admin = () => {
   const resetForm = () => {
     setVehicleData({
       vehicle_number: "",
-      vehicle_type: "STANDARD",
+      vehicle_type: "LUXURY",
       status: "AVAILABLE",
       driver_name: "",
       driver_contact: "",
@@ -202,17 +220,20 @@ const Admin = () => {
   };
 
   // Handle driver function
-  function handleAddDriver(event: React.MouseEvent<HTMLButtonElement>): void {
-    toast.info("Driver management functionality coming soon");
-  }
 
   // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
+    console.log("Not authenticated");
+
     return <Navigate to="/login" />;
   }
 
   // Redirect to dashboard if not an admin
-  if (!loading && !isAdmin) {
+  if (!loading && user?.role !== "admin") {
+    console.log(user);
+
+    console.log("Not an admin");
+
     return <Navigate to="/dashboard" />;
   }
 
@@ -246,10 +267,12 @@ const Admin = () => {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{vehicles.length || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {vehicles.filter((v) => v.status === "MAINTENANCE").length || 0}{" "}
+              {/* <p className="text-xs text-muted-foreground mt-1">
+                {(vehicles &&
+                  vehicles.filter((v) => v.status === "MAINTENANCE").length) ||
+                  0}{" "}
                 in maintenance
-              </p>
+              </p> */}
             </CardContent>
           </Card>
 
@@ -439,35 +462,6 @@ const Admin = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="drivers">
-              <div className="mb-6 flex flex-wrap gap-4 items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search drivers..."
-                      className="pl-9 w-[250px]"
-                    />
-                  </div>
-                  <Select>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Filter status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="on-duty">On Duty</SelectItem>
-                      <SelectItem value="off-duty">Off Duty</SelectItem>
-                      <SelectItem value="on-trip">On Trip</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={handleAddDriver}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Driver
-                </Button>
-              </div>
-            </TabsContent>
-
             <TabsContent value="analytics">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
@@ -554,10 +548,9 @@ const Admin = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="STANDARD">Standard</SelectItem>
-                        <SelectItem value="PREMIUM">Premium</SelectItem>
                         <SelectItem value="SUV">SUV</SelectItem>
-                        <SelectItem value="ELECTRIC">Electric</SelectItem>
-                        <SelectItem value="HYBRID">Hybrid</SelectItem>
+                        <SelectItem value="SEDAN">SEDAN</SelectItem>
+                        <SelectItem value="VAN">Van</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
