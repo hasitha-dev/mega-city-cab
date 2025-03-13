@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -44,14 +45,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        
+        // Redirect admin users to admin page if they're on dashboard or booking
+        if (parsedUser.role === "admin") {
+          const currentPath = window.location.pathname;
+          if (currentPath === "/dashboard" || currentPath === "/booking") {
+            navigate("/admin");
+          }
+        }
       } catch (error) {
         console.error("Failed to parse user from localStorage", error);
         localStorage.removeItem("user");
       }
     }
     setLoading(false);
-  }, []);
+  }, [navigate]);
 
   // Mock login function (replace with real API call)
   const login = async (email: string, password: string) => {
@@ -82,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (dataDecoded.isAdmin) {
         user.role = "admin";
         setUser(user);
-        navigate("/admin");
+        navigate("/admin"); // Admin users go straight to admin page
       } else {
         user.role = "user";
         setUser(user);

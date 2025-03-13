@@ -51,13 +51,16 @@ const Navbar = () => {
 
   // Create nav links conditionally based on user role
   const getNavLinks = () => {
-    const links = [
-      {
+    const links = [];
+
+    // Only show Dashboard to non-admin users
+    if (!isAdmin) {
+      links.push({
         name: "Dashboard",
         path: "/dashboard",
         icon: <User className="h-4 w-4 mr-2" />,
-      },
-    ];
+      });
+    }
 
     // Only show Booking to non-admin users
     if (!isAdmin) {
@@ -68,6 +71,7 @@ const Navbar = () => {
       });
     }
 
+    // Show Billing to both admin and non-admin users
     links.push({
       name: "Billing",
       path: "/billing",
