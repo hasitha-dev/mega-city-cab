@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -47,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
-        
+
         // Redirect admin users to admin page if they're on dashboard or booking
         if (parsedUser.role === "admin") {
           const currentPath = window.location.pathname;
@@ -83,17 +82,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("User", user);
 
       localStorage.setItem("user", JSON.stringify(user));
-
-      const decoded: any = jwtDecode(user.token);
-      localStorage.setItem("token", JSON.stringify(decoded));
+      localStorage.setItem("accessToken", user.token);
+      const dataDecoded: any = jwtDecode(user.token);
       toast.success("Login successful");
-      const dataDecoded: any = JSON.parse(localStorage.getItem("token"));
       console.log("Data Decoded", dataDecoded);
       if (dataDecoded.isAdmin) {
+        console.log("Admin user");
         user.role = "admin";
         setUser(user);
         navigate("/admin"); // Admin users go straight to admin page
       } else {
+        console.log("Normal user");
         user.role = "user";
         setUser(user);
         navigate("/dashboard");

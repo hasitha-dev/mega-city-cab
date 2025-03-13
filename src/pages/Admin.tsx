@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -41,8 +40,8 @@ import ConfirmationDialog from "@/components/ConfirmationDialog";
 interface Vehicle {
   vehicle_id?: string;
   vehicle_number: string;
-  vehicle_type: 'STANDARD' | 'PREMIUM' | 'SUV' | 'ELECTRIC' | 'HYBRID';
-  status: 'AVAILABLE' | 'UNAVAILABLE' | 'MAINTENANCE';
+  vehicle_type: "STANDARD" | "PREMIUM" | "SUV" | "ELECTRIC" | "HYBRID";
+  status: "AVAILABLE" | "UNAVAILABLE" | "MAINTENANCE";
   driver_id?: string;
   driver_name: string;
   driver_contact: string;
@@ -61,8 +60,8 @@ const Admin = () => {
   // Vehicle form state
   const [vehicleData, setVehicleData] = useState<Vehicle>({
     vehicle_number: "",
-    vehicle_type: 'STANDARD',
-    status: 'AVAILABLE',
+    vehicle_type: "STANDARD",
+    status: "AVAILABLE",
     driver_name: "",
     driver_contact: "",
     driver_nic: "",
@@ -73,7 +72,14 @@ const Admin = () => {
   const fetchVehicles = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:8070/api/vehicle");
+      console.log("Token", localStorage.getItem("token"));
+
+      const response = await fetch("http://localhost:8070/api/vehicle", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        method: "GET",
+      });
       if (response.ok) {
         const data = await response.json();
         setVehicles(data);
@@ -107,10 +113,14 @@ const Admin = () => {
   // Add vehicle function
   const handleAddVehicle = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
+      console.log("Token", token);
+
       const response = await fetch("http://localhost:8070/api/vehicle", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(vehicleData),
       });
@@ -121,7 +131,9 @@ const Admin = () => {
         resetForm();
       } else {
         const errorData = await response.json();
-        toast.error(`Failed to add vehicle: ${errorData.message || "Unknown error"}`);
+        toast.error(
+          `Failed to add vehicle: ${errorData.message || "Unknown error"}`
+        );
       }
     } catch (error) {
       console.error("Error adding vehicle:", error);
@@ -152,11 +164,14 @@ const Admin = () => {
 
   const handleDeleteConfirm = async () => {
     if (!selectedVehicle?.vehicle_id) return;
-    
+
     try {
-      const response = await fetch(`http://localhost:8070/api/vehicle/${selectedVehicle.vehicle_id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8070/api/vehicle/${selectedVehicle.vehicle_id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         toast.success("Vehicle deleted successfully");
@@ -177,8 +192,8 @@ const Admin = () => {
   const resetForm = () => {
     setVehicleData({
       vehicle_number: "",
-      vehicle_type: 'STANDARD',
-      status: 'AVAILABLE',
+      vehicle_type: "STANDARD",
+      status: "AVAILABLE",
       driver_name: "",
       driver_contact: "",
       driver_nic: "",
@@ -232,7 +247,8 @@ const Admin = () => {
             <CardContent>
               <div className="text-3xl font-bold">{vehicles.length || 0}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                {vehicles.filter(v => v.status === 'MAINTENANCE').length || 0} in maintenance
+                {vehicles.filter((v) => v.status === "MAINTENANCE").length || 0}{" "}
+                in maintenance
               </p>
             </CardContent>
           </Card>
@@ -369,35 +385,42 @@ const Admin = () => {
                               className="bg-slate-700 border-b"
                             >
                               <td className="px-6 py-4 font-medium">
-                                {vehicle.vehicle_id?.substring(0, 8) || 'N/A'}
+                                {vehicle.vehicle_id?.substring(0, 8) || "N/A"}
                               </td>
-                              <td className="px-6 py-4 capitalize">{vehicle.vehicle_type.toLowerCase()}</td>
-                              <td className="px-6 py-4">{vehicle.vehicle_number}</td>
+                              <td className="px-6 py-4 capitalize">
+                                {vehicle.vehicle_type.toLowerCase()}
+                              </td>
+                              <td className="px-6 py-4">
+                                {vehicle.vehicle_number}
+                              </td>
                               <td className="px-6 py-4">
                                 <span
                                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    vehicle.status === 'AVAILABLE'
+                                    vehicle.status === "AVAILABLE"
                                       ? "bg-green-100 text-green-800"
-                                      : vehicle.status === 'UNAVAILABLE'
+                                      : vehicle.status === "UNAVAILABLE"
                                       ? "bg-blue-100 text-blue-800"
                                       : "bg-yellow-100 text-yellow-800"
                                   }`}
                                 >
-                                  {vehicle.status.charAt(0) + vehicle.status.slice(1).toLowerCase()}
+                                  {vehicle.status.charAt(0) +
+                                    vehicle.status.slice(1).toLowerCase()}
                                 </span>
                               </td>
-                              <td className="px-6 py-4">{vehicle.driver_name}</td>
+                              <td className="px-6 py-4">
+                                {vehicle.driver_name}
+                              </td>
                               <td className="px-6 py-4">
                                 <div className="flex space-x-2">
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => handleEditVehicle(vehicle)}
                                   >
                                     Edit
                                   </Button>
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     className="text-destructive hover:bg-destructive/10"
                                     onClick={() => handleDeleteClick(vehicle)}
@@ -510,19 +533,21 @@ const Admin = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="vehicle_number">Vehicle Number</Label>
-                    <Input 
-                      id="vehicle_number" 
-                      placeholder="e.g. ABC-1234" 
+                    <Input
+                      id="vehicle_number"
+                      placeholder="e.g. ABC-1234"
                       value={vehicleData.vehicle_number}
                       onChange={handleChange}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="vehicle_type">Vehicle Type</Label>
-                    <Select 
-                      value={vehicleData.vehicle_type} 
-                      onValueChange={(value) => handleSelectChange('vehicle_type', value)}
+                    <Select
+                      value={vehicleData.vehicle_type}
+                      onValueChange={(value) =>
+                        handleSelectChange("vehicle_type", value)
+                      }
                     >
                       <SelectTrigger id="vehicle_type">
                         <SelectValue placeholder="Select type" />
@@ -539,9 +564,11 @@ const Admin = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>
-                    <Select 
-                      value={vehicleData.status} 
-                      onValueChange={(value) => handleSelectChange('status', value)}
+                    <Select
+                      value={vehicleData.status}
+                      onValueChange={(value) =>
+                        handleSelectChange("status", value)
+                      }
                     >
                       <SelectTrigger id="status">
                         <SelectValue placeholder="Select status" />
@@ -553,7 +580,7 @@ const Admin = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="driver_name">Driver Name</Label>
                     <Input
@@ -601,7 +628,7 @@ const Admin = () => {
                   Cancel
                 </Button>
                 <Button onClick={handleAddVehicle}>
-                  {vehicleData.vehicle_id ? 'Update Vehicle' : 'Add Vehicle'}
+                  {vehicleData.vehicle_id ? "Update Vehicle" : "Add Vehicle"}
                 </Button>
               </CardFooter>
             </Card>
