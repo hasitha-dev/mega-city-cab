@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import BookingForm from "@/components/booking/BookingForm";
 import RouteSelectionCard from "@/components/booking/RouteSelectionCard";
@@ -20,10 +20,12 @@ import {
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateFare } from "@/utils/mapUtils";
+import { date } from "yup";
 
 const Booking = () => {
   const { user, isAuthenticated, loading } = useAuth();
   const bookingFormState = useBookingForm();
+  const navigate = useNavigate();
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -41,10 +43,37 @@ const Booking = () => {
     );
   }
 
-  const handleBookingSubmit = (bookingData: any) => {
+  const handleBookingSubmit = async (bookingData: any) => {
     setCurrentBooking(bookingData);
+
     setBookingCompleted(true);
+
     toast.success("Booking created successfully!");
+  };
+
+  const handleSaveBooking = async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const customerEmail = user?.email || "";
+    const resp = await fetch("http://localhost:8070/api/booking", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        customerEmail: customerEmail,
+        startLocation: bookingFormState.pickupLocation,
+        destination: bookingFormState.destination,
+        date: bookingFormState.pickupDate,
+        startTime: bookingFormState.pickupTime,
+        passengerCount: bookingFormState.passengers,
+        distance: bookingFormState.distance,
+        vehicleType: bookingFormState.vehicleType,
+        fare: calculateFare(
+          bookingFormState.distance,
+          bookingFormState.vehicleType
+        ),
+      }),
+    });
   };
 
   const handleUpdateBooking = () => {
@@ -64,7 +93,7 @@ const Booking = () => {
   };
 
   const handleBackToForm = () => {
-    setBookingCompleted(false);
+    navigate("/dashboard");
   };
 
   return (
@@ -87,7 +116,7 @@ const Booking = () => {
               onClick={handleBackToForm}
             >
               <ArrowLeftCircle className="h-4 w-4" />
-              Back to Booking Form
+              Back to Home
             </Button>
 
             <Card className="overflow-hidden border bg-card">
@@ -96,15 +125,15 @@ const Booking = () => {
                   <h2 className="text-xl font-bold">Booking Confirmation</h2>
                   <div className="flex gap-2">
                     <Button
-                      variant="outline"
+                      variant="default"
                       size="sm"
                       className="flex items-center gap-1"
-                      onClick={handleUpdateBooking}
+                      onClick={handleSaveBooking}
                     >
                       <Edit2 className="h-4 w-4" />
-                      Edit
+                      Save
                     </Button>
-                    <Button
+                    {/* <Button
                       variant="destructive"
                       size="sm"
                       className="flex items-center gap-1"
@@ -112,7 +141,7 @@ const Booking = () => {
                     >
                       <Trash2 className="h-4 w-4" />
                       Delete
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
 
@@ -123,7 +152,7 @@ const Booking = () => {
               </div>
 
               <CardContent className="p-6">
-                <div className="border-b pb-6 mb-6 border-gray-200">
+                <div className=" pb-6 mb-6 border-gray-200">
                   <div className="space-y-6">
                     <div className=" border-gray-200 border rounded-xl p-6 mb-6">
                       <h3 className="text-lg font-medium flex items-center gap-2 mb-4">
@@ -254,7 +283,7 @@ const Booking = () => {
           </div>
         ) : (
           <div className="">
-            <div className="max-w-2xl mx-auto ">
+            <div className=" mx-auto ">
               <BookingForm
                 pickupLocation={bookingFormState.pickupLocation}
                 setPickupLocation={bookingFormState.setPickupLocation}
@@ -305,16 +334,16 @@ const Booking = () => {
       </div>
 
       {/* Edit Popup */}
-      <EditPopup
+      {/* <EditPopup
         isOpen={bookingFormState.isEditModalOpen}
         onClose={bookingFormState.closeEditModal}
         onSave={bookingFormState.handleEditItem}
         onDelete={bookingFormState.handleDeleteItem}
         item={bookingFormState.currentEditItem}
-      />
+      /> */}
 
       {/* Delete Confirmation Dialog */}
-      <ConfirmationDialog
+      {/* <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
@@ -323,7 +352,7 @@ const Booking = () => {
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"
-      />
+      /> */}
     </div>
   );
 };

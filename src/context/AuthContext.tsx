@@ -75,10 +75,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem("user", JSON.stringify(user));
 
       const decoded: any = jwtDecode(user.token);
-      localStorage.setItem("token", decoded);
+      localStorage.setItem("token", JSON.stringify(decoded));
       toast.success("Login successful");
-
-      if (decoded.role === "admin") {
+      const dataDecoded: any = JSON.parse(localStorage.getItem("token"));
+      console.log("Data Decoded", dataDecoded);
+      if (dataDecoded.isAdmin) {
         user.role = "admin";
         setUser(user);
         navigate("/admin");

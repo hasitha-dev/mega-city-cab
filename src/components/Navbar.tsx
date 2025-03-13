@@ -146,7 +146,7 @@ const Navbar = () => {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="relative h-8 w-8 rounded-full"
+                      className="relative h-8 w-20 rounded-full"
                     >
                       <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white">
                         {user?.name?.charAt(0) || "U"}
@@ -155,7 +155,7 @@ const Navbar = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 mt-2">
                     <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
+                      <div className="flex flex-col space-y-5">
                         <p className="text-sm font-medium">{user?.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {user?.email}
