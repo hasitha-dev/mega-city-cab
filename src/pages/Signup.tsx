@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -50,7 +49,7 @@ const Signup = () => {
     validationSchema,
     onSubmit: async (values) => {
       console.log("Form Data:", values);
-      const res = await fetch("http://localhost:8080/api/user/signup", {
+      const res = await fetch("http://localhost:8070/api/user/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
@@ -87,9 +86,7 @@ const Signup = () => {
               <h2 className="mt-4 text-3xl font-bold text-white">
                 Create an Account
               </h2>
-              <p className="mt-2 text-indigo-200">
-                Sign up to get started
-              </p>
+              <p className="mt-2 text-indigo-200">Sign up to get started</p>
             </div>
 
             <Card className="border-indigo-500/10 shadow-xl shadow-indigo-900/20 backdrop-blur-lg bg-gray-800/60">
@@ -104,7 +101,9 @@ const Signup = () => {
               <CardContent>
                 <form onSubmit={formik.handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="username" className="text-gray-200">Username</Label>
+                    <Label htmlFor="username" className="text-gray-200">
+                      Username
+                    </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <User className="h-4 w-4 text-indigo-300" />
@@ -125,7 +124,9 @@ const Signup = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-gray-200">Email</Label>
+                    <Label htmlFor="email" className="text-gray-200">
+                      Email
+                    </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <Mail className="h-4 w-4 text-indigo-300" />
@@ -146,7 +147,9 @@ const Signup = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-gray-200">Password</Label>
+                    <Label htmlFor="password" className="text-gray-200">
+                      Password
+                    </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <Lock className="h-4 w-4 text-indigo-300" />
@@ -167,7 +170,9 @@ const Signup = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="address" className="text-gray-200">Address</Label>
+                    <Label htmlFor="address" className="text-gray-200">
+                      Address
+                    </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <Home className="h-4 w-4 text-indigo-300" />
@@ -188,7 +193,9 @@ const Signup = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-gray-200">Phone</Label>
+                    <Label htmlFor="phone" className="text-gray-200">
+                      Phone
+                    </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <Phone className="h-4 w-4 text-indigo-300" />
