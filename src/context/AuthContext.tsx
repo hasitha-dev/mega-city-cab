@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,7 +15,6 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  refreshToken: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
 }
@@ -27,7 +25,6 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: async () => {},
   logout: () => {},
-  refreshToken: async () => {},
   isAuthenticated: false,
   isAdmin: false,
 });
@@ -64,51 +61,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     setLoading(false);
   }, [navigate]);
-
-  // Refresh token function
-  const refreshToken = async () => {
-    try {
-      setLoading(true);
-      const currentToken = localStorage.getItem("accessToken");
-      
-      if (!currentToken) {
-        throw new Error("No token found");
-      }
-
-      const response = await fetch("http://localhost:8070/api/user/refresh", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentToken}`
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to refresh token");
-      }
-
-      const data = await response.json();
-      
-      // Update token in localStorage
-      localStorage.setItem("accessToken", data.token);
-      
-      // Update user information if included in response
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        setUser(data.user);
-      }
-      
-      toast.success("Session refreshed successfully");
-      return data;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      toast.error("Your session has expired. Please login again.");
-      logout();
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Mock login function (replace with real API call)
   const login = async (email: string, password: string) => {
@@ -159,7 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
-    localStorage.removeItem("accessToken");
     toast.success("You have been logged out");
     navigate("/login");
   };
@@ -169,7 +120,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     loading,
     login,
     logout,
-    refreshToken,
     isAuthenticated: !!user,
     isAdmin: user?.role === "admin",
   };
