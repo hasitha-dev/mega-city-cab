@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
 
@@ -38,29 +39,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Check if user is already logged in on mount
+  // Check routes and redirect if needed
+  const checkRouteAccess = (userRole: string, currentPath: string) => {
+    const adminRoutes = ["/admin"];
+    const userRoutes = ["/dashboard", "/booking", "/billing", "/help"];
+    
+    if (userRole === "admin" && userRoutes.some(route => currentPath.startsWith(route))) {
+      navigate("/admin");
+      return;
+    }
+    
+    if (userRole === "user" && adminRoutes.some(route => currentPath.startsWith(route))) {
+      navigate("/dashboard");
+      return;
+    }
+  };
+
+  // Check if user is already logged in on mount and handle route access
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
-
-        // Redirect admin users to admin page if they're on dashboard or booking
-        if (parsedUser.role === "admin") {
-          const currentPath = window.location.pathname;
-          if (currentPath === "/dashboard" || currentPath === "/booking") {
-            navigate("/admin");
-          }
-        }
+        
+        // Check route access based on role
+        checkRouteAccess(parsedUser.role, location.pathname);
       } catch (error) {
         console.error("Failed to parse user from localStorage", error);
         localStorage.removeItem("user");
       }
     }
     setLoading(false);
-  }, [navigate]);
+  }, [navigate, location.pathname]);
+
+  // Monitor route changes to enforce access restrictions
+  useEffect(() => {
+    if (user) {
+      checkRouteAccess(user.role, location.pathname);
+    }
+  }, [location.pathname, user]);
 
   // Mock login function (replace with real API call)
   const login = async (email: string, password: string) => {
@@ -86,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const dataDecoded: any = jwtDecode(user.token);
       toast.success("Login successful");
       console.log("Data Decoded", dataDecoded);
+      
       if (dataDecoded.isAdmin) {
         console.log("Admin user");
         user.role = "admin";
@@ -111,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
     toast.success("You have been logged out");
     navigate("/login");
   };
