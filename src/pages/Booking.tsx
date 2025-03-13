@@ -15,11 +15,17 @@ import {
   MapPin,
   UserCircle,
   Car,
+  Save,
+  Check,
+  Clock,
+  DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateFare } from "@/utils/mapUtils";
 import { fetchBookingById, Booking as BookingType } from "@/services/api";
+import InvoiceDetails from "@/components/booking/InvoiceDetails";
+import { Badge } from "@/components/ui/badge";
 
 const Booking = () => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -30,6 +36,8 @@ const Booking = () => {
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoadingBooking, setIsLoadingBooking] = useState(false);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Extract any query parameters
   const queryParams = new URLSearchParams(location.search);
@@ -112,6 +120,7 @@ const Booking = () => {
 
   const handleSaveBooking = async () => {
     try {
+      setIsSaving(true);
       const user = JSON.parse(localStorage.getItem("user") || '{"email":"user@example.com"}');
       const customerEmail = user?.email || "";
       
@@ -153,6 +162,8 @@ const Booking = () => {
     } catch (error) {
       console.error("Error saving booking:", error);
       toast.error("Could not connect to server");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -174,6 +185,17 @@ const Booking = () => {
 
   const handleBackToForm = () => {
     navigate("/dashboard");
+  };
+
+  const openInvoiceDetails = () => {
+    setIsInvoiceOpen(true);
+  };
+
+  const getFare = () => {
+    return calculateFare(
+      bookingFormState.distance || 0,
+      bookingFormState.vehicleType || 'sedan'
+    );
   };
 
   return (
@@ -203,154 +225,212 @@ const Booking = () => {
               Back to Home
             </Button>
 
-            <Card className="overflow-hidden border bg-card">
-              <div className="bg-primary/10 p-6 border-b">
+            <Card className="overflow-hidden border border-primary/10 shadow-md">
+              <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-6 border-b relative">
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-bold">Booking Confirmation</h2>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="flex items-center gap-1"
-                      onClick={handleSaveBooking}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                      Save
-                    </Button>
-                  </div>
+                  <Badge variant="outline" className="absolute right-6 top-6 bg-green-100 text-green-800 border-green-200 px-3 py-1">
+                    <span className="h-2 w-2 bg-green-600 rounded-full mr-2 inline-block"></span>
+                    Confirmed
+                  </Badge>
                 </div>
-
-                <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800">
-                  <span className="h-2 w-2 bg-green-600 rounded-full mr-2"></span>
-                  Booking Confirmed
+                
+                <div className="mt-10 flex flex-wrap gap-4 items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Booking Reference</p>
+                    <p className="font-medium text-lg">{Math.random().toString(36).substring(2, 10).toUpperCase()}</p>
+                  </div>
+                  
+                  <Button
+                    variant="default"
+                    size="lg"
+                    className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white shadow-md transition-all hover:shadow-lg"
+                    onClick={handleSaveBooking}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-5 w-5" />
+                        Save Booking
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
 
-              <CardContent className="p-6">
-                <div className=" pb-6 mb-6 border-gray-200">
-                  <div className="space-y-6">
-                    <div className=" border-gray-200 border rounded-xl p-6 mb-6">
-                      <h3 className="text-lg font-medium flex items-center gap-2 mb-4">
-                        <MapPin className="h-5 w-5 text-primary" />
+              <CardContent className="p-0">
+                <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
+                  <div className="p-6 space-y-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium flex items-center gap-2 text-primary">
+                        <MapPin className="h-5 w-5" />
                         Trip Details
                       </h3>
 
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                            <span className="text-blue-600 font-bold text-sm">
-                              A
-                            </span>
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <span className="text-blue-600 font-bold text-sm">A</span>
                           </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Pickup Location
-                            </p>
-                            <p className="font-medium">
-                              {bookingFormState.pickupLocation}
-                            </p>
+                          <div className="flex-1">
+                            <p className="text-sm text-muted-foreground">Pickup Location</p>
+                            <p className="font-medium">{bookingFormState.pickupLocation}</p>
                           </div>
+                        </div>
+
+                        <div className="relative pl-5 ml-1.5 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-gray-200">
+                          <div className="w-3 h-3 bg-gray-200 rounded-full absolute -left-1"></div>
+                          <div className="w-3 h-3 bg-gray-200 rounded-full absolute -left-1 top-1/2 -translate-y-1/2"></div>
+                          <div className="w-3 h-3 bg-gray-200 rounded-full absolute -left-1 bottom-0"></div>
                         </div>
 
                         <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                            <span className="text-green-600 font-bold text-sm">
-                              B
-                            </span>
+                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <span className="text-green-600 font-bold text-sm">B</span>
                           </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Destination
-                            </p>
-                            <p className="font-medium">
-                              {bookingFormState.destination}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <Calendar className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Pickup Time
-                            </p>
-                            <p className="font-medium">
-                              {bookingFormState.pickupDate} at{" "}
-                              {bookingFormState.pickupTime}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <UserCircle className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Passengers
-                            </p>
-                            <p className="font-medium">
-                              {bookingFormState.passengers} passenger
-                              {bookingFormState.passengers !== 1 ? "s" : ""}
-                            </p>
+                          <div className="flex-1">
+                            <p className="text-sm text-muted-foreground">Destination</p>
+                            <p className="font-medium">{bookingFormState.destination}</p>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {bookingFormState.distance &&
-                      bookingFormState.vehicleType && (
-                        <div className="bg-muted/50 p-4 rounded-lg">
-                          <h3 className="text-lg font-medium flex items-center gap-2 mb-4">
-                            <Car className="h-5 w-5 text-primary" />
-                            Fare Details
-                          </h3>
+                    <div className="pt-6 border-t border-dashed space-y-4">
+                      <h3 className="text-lg font-medium flex items-center gap-2 text-primary">
+                        <Calendar className="h-5 w-5" />
+                        Booking Details
+                      </h3>
 
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">
-                                Distance
-                              </span>
-                              <span>
-                                {bookingFormState.distance.toFixed(2)} km
-                              </span>
-                            </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Date</p>
+                          <p className="font-medium">{bookingFormState.pickupDate}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Time</p>
+                          <p className="font-medium">{bookingFormState.pickupTime}</p>
+                        </div>
+                      </div>
 
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">
-                                Vehicle Type
-                              </span>
-                              <span className="capitalize">
-                                {bookingFormState.vehicleType}
-                              </span>
-                            </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Vehicle</p>
+                          <p className="font-medium capitalize">{bookingFormState.vehicleType}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Passengers</p>
+                          <p className="font-medium">{bookingFormState.passengers}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">
-                                Base Fare
-                              </span>
-                              <span>
-                                LKR{" "}
-                                {{
-                                  sedan: "200",
-                                  suv: "300",
-                                  van: "400",
-                                  luxury: "600",
-                                }[bookingFormState.vehicleType] || "200"}
-                              </span>
-                            </div>
+                  <div className="p-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium flex items-center gap-2 text-primary">
+                        <DollarSign className="h-5 w-5" />
+                        Payment Details
+                      </h3>
 
-                            <div className="border-t pt-2 mt-2 flex justify-between font-medium">
-                              <span>Total Fare</span>
-                              <span className="text-primary">
-                                LKR{" "}
-                                {calculateFare(
-                                  bookingFormState.distance,
-                                  bookingFormState.vehicleType
-                                ).toFixed(2)}
-                              </span>
-                            </div>
+                      <div className="space-y-3 pb-4">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Distance</span>
+                          <span>{bookingFormState.distance?.toFixed(2)} km</span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Base fare</span>
+                          <span>LKR {{
+                            sedan: "200",
+                            suv: "300",
+                            van: "400",
+                            luxury: "600",
+                          }[bookingFormState.vehicleType || 'sedan']}</span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Rate per km</span>
+                          <span>LKR {{
+                            sedan: "50",
+                            suv: "65",
+                            van: "80",
+                            luxury: "100",
+                          }[bookingFormState.vehicleType || 'sedan']}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t">
+                        <div className="flex justify-between items-center text-lg font-semibold">
+                          <span>Total Fare</span>
+                          <span className="text-primary">LKR {getFare().toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 pt-6 border-t border-dashed space-y-3">
+                        <h4 className="font-medium">Payment Methods</h4>
+                        <div className="flex gap-2">
+                          <Badge variant="outline" className="px-3 py-1">Cash</Badge>
+                          <Badge variant="outline" className="px-3 py-1">Card on arrival</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Payment will be collected upon completion of your journey
+                        </p>
+                      </div>
+
+                      <div className="bg-blue-50 p-4 rounded-md mt-4">
+                        <div className="flex items-start gap-3">
+                          <div className="bg-blue-100 p-1.5 rounded-full">
+                            <Clock className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div className="text-sm text-blue-800">
+                            <p className="font-medium">Booking will expire in 30 minutes</p>
+                            <p className="text-xs mt-1">Please confirm your booking by clicking the Save button</p>
                           </div>
                         </div>
-                      )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 border-t bg-muted/20">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-muted-foreground"
+                      onClick={openInvoiceDetails}
+                    >
+                      View Full Details
+                    </Button>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-primary/20 hover:bg-primary/5"
+                        onClick={() => setBookingCompleted(false)}
+                      >
+                        <Edit2 className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90"
+                        onClick={handleSaveBooking}
+                        disabled={isSaving}
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Confirm
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -386,6 +466,21 @@ const Booking = () => {
           </div>
         )}
       </div>
+      
+      {/* Invoice Details Modal */}
+      <InvoiceDetails 
+        isOpen={isInvoiceOpen}
+        onClose={() => setIsInvoiceOpen(false)}
+        bookingDetails={{
+          pickupLocation: bookingFormState.pickupLocation,
+          destination: bookingFormState.destination,
+          pickupDate: bookingFormState.pickupDate,
+          pickupTime: bookingFormState.pickupTime,
+          vehicleType: bookingFormState.vehicleType,
+          passengers: bookingFormState.passengers,
+          distance: bookingFormState.distance,
+        }}
+      />
     </div>
   );
 };
