@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Calendar, Clock, Car, DollarSign, Users } from 'lucide-react';
+import { Calendar, Clock, Car, DollarSign, Users, Route } from 'lucide-react';
 import { toast } from 'sonner';
 import LocationInput from '@/components/map/LocationInput';
 import VehicleSelection from '@/components/VehicleSelection';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { calculateFare } from '@/utils/mapUtils';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import RouteSelectionCard from './RouteSelectionCard';
 
 interface BookingFormProps {
   pickupLocation: string;
@@ -27,6 +28,9 @@ interface BookingFormProps {
   endPoint: [number, number] | null;
   distance: number | null;
   handleLocationSelect: (location: { lat: number; lng: number; name: string }) => void;
+  mapCenter: [number, number];
+  selectionStep: 'pickup' | 'destination';
+  handleRouteSelect: (start: [number, number], end: [number, number]) => void;
   resetForm?: () => void;
   onSubmit: (data: any) => void;
 }
@@ -48,6 +52,9 @@ const BookingForm: React.FC<BookingFormProps> = ({
   endPoint,
   distance,
   handleLocationSelect,
+  mapCenter,
+  selectionStep,
+  handleRouteSelect,
   resetForm,
   onSubmit
 }) => {
@@ -114,16 +121,21 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   return (
     <Card className="bg-card">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Book Your Ride</CardTitle>
+      <CardHeader className="space-y-1 bg-muted/30">
+        <CardTitle className="text-2xl flex items-center gap-2">
+          <span className="p-1.5 rounded-full bg-primary/10">
+            <Car className="h-5 w-5 text-primary" />
+          </span>
+          Book Your Ride
+        </CardTitle>
         <CardDescription>Enter the details for your journey</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <form className="space-y-6" onSubmit={handleSubmit} id="booking-form">
           <div className="space-y-4">
             <h3 className="text-lg font-medium flex items-center gap-2">
               <span className="p-1.5 rounded-full bg-primary/10">
-                <Calendar className="h-4 w-4 text-primary" />
+                <Route className="h-4 w-4 text-primary" />
               </span>
               Trip Details
             </h3>
@@ -135,6 +147,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 onLocationSelect={handlePickupLocationSelect}
                 placeholder="Enter pickup address"
                 label="Pickup Location"
+                selectionStep={selectionStep}
               />
               
               <LocationInput
@@ -143,6 +156,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 onLocationSelect={handleDestinationSelect}
                 placeholder="Enter destination address"
                 label="Destination"
+                selectionStep={selectionStep}
               />
             </div>
             
@@ -208,53 +222,26 @@ const BookingForm: React.FC<BookingFormProps> = ({
             passengerCount={passengers}
           />
           
-          {distance && estimatedFare && (
-            <>
-              <Separator />
-              
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium flex items-center gap-2">
-                  <span className="p-1.5 rounded-full bg-primary/10">
-                    <DollarSign className="h-4 w-4 text-primary" />
-                  </span>
-                  Fare Estimate
-                </h3>
-                
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Distance:</span>
-                    <span className="font-medium">{distance.toFixed(2)} km</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Base fare:</span>
-                    <span className="font-medium">LKR {
-                      {
-                        'sedan': '200',
-                        'suv': '300', 
-                        'van': '400',
-                        'luxury': '600'
-                      }[vehicleType] || '200'
-                    }</span>
-                  </div>
-                  
-                  <Separator className="my-2" />
-                  
-                  <div className="flex justify-between items-center text-lg">
-                    <span className="font-medium">Estimated Total:</span>
-                    <span className="font-bold text-primary">LKR {estimatedFare.toFixed(2)}</span>
-                  </div>
-                  
-                  <p className="text-xs text-muted-foreground mt-2">
-                    *Fare estimate may vary based on actual route, traffic conditions, and waiting time.
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
+          <Separator />
+          
+          <div className="mt-6">
+            <RouteSelectionCard 
+              mapCenter={mapCenter}
+              pickupLocation={pickupLocation}
+              destination={destination}
+              pickupDate={pickupDate}
+              pickupTime={pickupTime}
+              vehicleType={vehicleType}
+              passengers={passengers}
+              distance={distance}
+              selectionStep={selectionStep}
+              handleLocationSelect={handleLocationSelect}
+              handleRouteSelect={handleRouteSelect}
+            />
+          </div>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-end gap-4 border-t p-6">
+      <CardFooter className="flex justify-end gap-4 border-t p-6 bg-muted/10">
         {resetForm && (
           <Button 
             type="button" 

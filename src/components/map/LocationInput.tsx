@@ -109,15 +109,27 @@ const LocationInput: React.FC<LocationInputProps> = ({
 
   return (
     <div className="relative">
-      <label className="text-sm font-medium block mb-1">{label}</label>
+      <label className="text-sm font-medium block mb-1">
+        {label}
+        {selectionStep === 'pickup' && label.toLowerCase().includes('pickup') && (
+          <span className="ml-2 text-xs inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+            Select First
+          </span>
+        )}
+        {selectionStep === 'destination' && label.toLowerCase().includes('destination') && (
+          <span className="ml-2 text-xs inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-800">
+            Select Next
+          </span>
+        )}
+      </label>
       <div className="relative flex">
         <div className="relative flex-1">
-          <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <MapPin className={`absolute left-3 top-3 h-4 w-4 ${selectionStep === 'pickup' && label.toLowerCase().includes('pickup') ? 'text-blue-500' : selectionStep === 'destination' && label.toLowerCase().includes('destination') ? 'text-green-500' : 'text-muted-foreground'}`} />
           <Input
             ref={inputRef}
             type="text"
             placeholder={placeholder}
-            className="pl-10 pr-10"
+            className={`pl-10 pr-10 ${selectionStep === 'pickup' && label.toLowerCase().includes('pickup') ? 'border-blue-300 focus:border-blue-500' : selectionStep === 'destination' && label.toLowerCase().includes('destination') ? 'border-green-300 focus:border-green-500' : ''}`}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onFocus={() => setShowSuggestions(true)}
@@ -136,9 +148,9 @@ const LocationInput: React.FC<LocationInputProps> = ({
             <Button 
               variant="outline" 
               size="icon" 
-              className="ml-2"
+              className={`ml-2 ${selectionStep === 'pickup' && label.toLowerCase().includes('pickup') ? 'border-blue-300 hover:border-blue-500' : selectionStep === 'destination' && label.toLowerCase().includes('destination') ? 'border-green-300 hover:border-green-500' : ''}`}
             >
-              <Map className="h-4 w-4" />
+              <Map className={`h-4 w-4 ${selectionStep === 'pickup' && label.toLowerCase().includes('pickup') ? 'text-blue-500' : selectionStep === 'destination' && label.toLowerCase().includes('destination') ? 'text-green-500' : ''}`} />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="end">
@@ -175,7 +187,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
                 onClick={() => handleSelect(suggestion)}
               >
                 <div className="flex items-start">
-                  <MapPin className="h-4 w-4 mt-0.5 mr-2 flex-shrink-0 text-primary" />
+                  <MapPin className={`h-4 w-4 mt-0.5 mr-2 flex-shrink-0 ${selectionStep === 'pickup' && label.toLowerCase().includes('pickup') ? 'text-blue-500' : selectionStep === 'destination' && label.toLowerCase().includes('destination') ? 'text-green-500' : 'text-primary'}`} />
                   <span>{suggestion.name}</span>
                 </div>
               </li>
