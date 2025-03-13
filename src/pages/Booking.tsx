@@ -26,6 +26,7 @@ import { calculateFare } from "@/utils/mapUtils";
 import { fetchBookingById, Booking as BookingType } from "@/services/api";
 import InvoiceDetails from "@/components/booking/InvoiceDetails";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 const Booking = () => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -125,6 +126,10 @@ const Booking = () => {
       );
       const customerEmail = user?.email || "";
 
+      const formattedDate = bookingFormState.pickupDate.match(/^\d{4}-\d{2}-\d{2}$/) 
+        ? bookingFormState.pickupDate 
+        : format(new Date(bookingFormState.pickupDate), "yyyy-MM-dd");
+
       const method = editBookingId ? "PUT" : "POST";
       const url = editBookingId
         ? `http://localhost:8070/api/booking/${editBookingId}`
@@ -134,7 +139,7 @@ const Booking = () => {
         customerEmail: customerEmail,
         startLocation: bookingFormState.pickupLocation,
         destination: bookingFormState.destination,
-        date: bookingFormState.pickupDate,
+        date: formattedDate,
         startTime: bookingFormState.pickupTime,
         passengerCount: bookingFormState.passengers,
         distance: bookingFormState.distance,
