@@ -126,9 +126,7 @@ const Booking = () => {
       );
       const customerEmail = user?.email || "";
 
-      const formattedDate = bookingFormState.pickupDate.match(/^\d{4}-\d{2}-\d{2}$/) 
-        ? bookingFormState.pickupDate 
-        : format(new Date(bookingFormState.pickupDate), "yyyy-MM-dd");
+      const formattedDate = new Date(bookingFormState.pickupDate).getTime();
 
       const method = editBookingId ? "PUT" : "POST";
       const url = editBookingId
@@ -142,12 +140,12 @@ const Booking = () => {
         date: formattedDate,
         startTime: bookingFormState.pickupTime,
         passengerCount: bookingFormState.passengers,
-        distance: bookingFormState.distance,
+        distance: bookingFormState.distance?.toFixed(3),
         vehicleType: bookingFormState.vehicleType,
         fare: calculateFare(
           bookingFormState.distance || 0,
           bookingFormState.vehicleType || "sedan"
-        ),
+        ).toFixed(2),
       };
 
       const response = await fetch(url, {
