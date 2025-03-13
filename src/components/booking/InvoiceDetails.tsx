@@ -20,7 +20,7 @@ import {
   Car,
   Users,
   FileDown,
-  Eye,
+  Download,
 } from "lucide-react";
 import html2canvas from "html2canvas";
 
@@ -93,24 +93,24 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] bg-white text-gray-900">
+      <DialogContent className="sm:max-w-[600px] bg-black text-white border border-gray-800">
         <DialogHeader>
-          <DialogTitle className="flex items-center text-lg">
+          <DialogTitle className="flex items-center text-lg text-white">
             <Receipt className="h-5 w-5 mr-2 text-primary" />
             Ride Invoice Details
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-400">
             Complete breakdown of your trip fare and details
           </DialogDescription>
         </DialogHeader>
 
-        <div ref={invoiceRef} className="bg-white p-4 rounded-lg">
-          <Card className="border shadow-sm">
+        <div ref={invoiceRef} className="bg-black p-4 rounded-lg">
+          <Card className="border border-gray-800 bg-gray-900 shadow-md">
             <CardContent className="p-6 space-y-6">
               <div className="flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-bold text-primary">Ride Invoice</h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-400">
                     {new Date().toLocaleDateString()}
                   </p>
                 </div>
@@ -119,96 +119,96 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                 </div>
               </div>
 
-              <Separator />
+              <Separator className="bg-gray-800" />
 
               <div className="space-y-4">
-                <h3 className="text-md font-semibold flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 text-blue-500" />
+                <h3 className="text-md font-semibold flex items-center text-white">
+                  <MapPin className="h-4 w-4 mr-2 text-blue-400" />
                   Trip Information
                 </h3>
 
-                <div className="grid grid-cols-1 gap-4 bg-gray-50 p-4 rounded-md">
+                <div className="grid grid-cols-1 gap-4 bg-gray-800/50 p-4 rounded-md">
                   <div className="flex items-start space-x-3">
                     <div className="min-w-6 mt-0.5">
-                      <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                        <MapPin className="h-3 w-3 text-blue-600" />
+                      <div className="w-6 h-6 rounded-full bg-blue-900 flex items-center justify-center">
+                        <MapPin className="h-3 w-3 text-blue-400" />
                       </div>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-300">
                         Pickup Location
                       </span>
-                      <p className="text-sm text-gray-600">{pickupLocation}</p>
+                      <p className="text-sm text-gray-400">{pickupLocation}</p>
                     </div>
                   </div>
 
-                  <div className="relative ml-3 pl-3 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-gray-200">
+                  <div className="relative ml-3 pl-3 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-gray-700">
                   </div>
 
                   <div className="flex items-start space-x-3">
                     <div className="min-w-6 mt-0.5">
-                      <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                        <Navigation className="h-3 w-3 text-green-600" />
+                      <div className="w-6 h-6 rounded-full bg-green-900 flex items-center justify-center">
+                        <Navigation className="h-3 w-3 text-green-400" />
                       </div>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-300">
                         Destination
                       </span>
-                      <p className="text-sm text-gray-600">{destination}</p>
+                      <p className="text-sm text-gray-400">{destination}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <h3 className="text-md font-semibold flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                    <h3 className="text-md font-semibold flex items-center text-white">
+                      <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                       Booking Details
                     </h3>
 
-                    <div className="space-y-3 bg-gray-50 p-4 rounded-md">
+                    <div className="space-y-3 bg-gray-800/50 p-4 rounded-md">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <span className="text-xs text-gray-500">Date</span>
-                          <p className="text-sm font-medium">{pickupDate}</p>
+                          <p className="text-sm font-medium text-gray-300">{pickupDate}</p>
                         </div>
                         <div>
                           <span className="text-xs text-gray-500">Time</span>
-                          <p className="text-sm font-medium">{pickupTime}</p>
+                          <p className="text-sm font-medium text-gray-300">{pickupTime}</p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <span className="text-xs text-gray-500">Vehicle</span>
-                          <p className="text-sm font-medium capitalize">{vehicleType}</p>
+                          <p className="text-sm font-medium text-gray-300 capitalize">{vehicleType}</p>
                         </div>
                         <div>
                           <span className="text-xs text-gray-500">Passengers</span>
-                          <p className="text-sm font-medium">{passengers}</p>
+                          <p className="text-sm font-medium text-gray-300">{passengers}</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="text-md font-semibold flex items-center">
-                      <Receipt className="h-4 w-4 mr-2 text-gray-500" />
+                    <h3 className="text-md font-semibold flex items-center text-white">
+                      <Receipt className="h-4 w-4 mr-2 text-gray-400" />
                       Fare Breakdown
                     </h3>
 
-                    <div className="space-y-3 bg-gray-50 p-4 rounded-md">
+                    <div className="space-y-3 bg-gray-800/50 p-4 rounded-md">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Distance</span>
-                        <span className="text-sm font-medium">
+                        <span className="text-sm text-gray-400">Distance</span>
+                        <span className="text-sm font-medium text-gray-300">
                           {distance?.toFixed(2) || 0} km
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Base fare</span>
-                        <span className="text-sm font-medium">
+                        <span className="text-sm text-gray-400">Base fare</span>
+                        <span className="text-sm font-medium text-gray-300">
                           LKR {{
                             sedan: "200",
                             suv: "300",
@@ -219,8 +219,8 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                       </div>
                       
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Rate per km</span>
-                        <span className="text-sm font-medium">
+                        <span className="text-sm text-gray-400">Rate per km</span>
+                        <span className="text-sm font-medium text-gray-300">
                           LKR {{
                             sedan: "50",
                             suv: "65",
@@ -230,10 +230,10 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                         </span>
                       </div>
                       
-                      <Separator className="my-2" />
+                      <Separator className="my-2 bg-gray-700" />
                       
                       <div className="flex justify-between font-medium">
-                        <span className="text-sm">Total</span>
+                        <span className="text-sm text-white">Total</span>
                         <span className="text-primary">
                           LKR {calculateFare().toFixed(2)}
                         </span>
@@ -243,7 +243,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                 </div>
               </div>
 
-              <div className="bg-blue-50 p-3 rounded-md text-xs text-blue-800">
+              <div className="bg-blue-900/20 p-3 rounded-md text-xs text-blue-300 border border-blue-900/50">
                 <p className="text-center">
                   Final fare may vary based on actual route, traffic conditions,
                   and waiting time.
@@ -257,15 +257,15 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
           <Button 
             variant="outline" 
             onClick={onClose}
-            className="w-full sm:w-auto order-2 sm:order-1"
+            className="w-full sm:w-auto order-2 sm:order-1 bg-transparent text-white border-gray-700 hover:bg-gray-800"
           >
             Close
           </Button>
           <Button
             onClick={downloadAsImage}
-            className="w-full sm:w-auto flex items-center gap-2 order-1 sm:order-2"
+            className="w-full sm:w-auto flex items-center gap-2 order-1 sm:order-2 bg-primary hover:bg-primary/90"
           >
-            <FileDown className="h-4 w-4" />
+            <Download className="h-4 w-4" />
             Download as PNG
           </Button>
         </DialogFooter>

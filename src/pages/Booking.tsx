@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
@@ -19,6 +18,7 @@ import {
   Check,
   Clock,
   DollarSign,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,11 +39,9 @@ const Booking = () => {
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Extract any query parameters
   const queryParams = new URLSearchParams(location.search);
   const editBookingId = queryParams.get('edit');
 
-  // Fetch booking data if we're in edit mode
   useEffect(() => {
     const loadBookingData = async () => {
       if (!editBookingId) return;
@@ -53,11 +51,9 @@ const Booking = () => {
         const bookingData = await fetchBookingById(editBookingId);
         
         if (bookingData) {
-          // Set form values from booking data
           bookingFormState.setPickupLocation(bookingData.pickupAddress);
           bookingFormState.setDestination(bookingData.destinationAddress);
           
-          // Convert ISO date to local date format
           const bookingDateTime = new Date(bookingData.bookingTime);
           const dateString = bookingDateTime.toISOString().split('T')[0];
           const timeString = bookingDateTime.toTimeString().substring(0, 5);
@@ -65,7 +61,6 @@ const Booking = () => {
           bookingFormState.setPickupDate(dateString);
           bookingFormState.setPickupTime(timeString);
           
-          // Set map points if available
           if (bookingData.pickupLat && bookingData.pickupLng) {
             bookingFormState.setStartPoint([bookingData.pickupLat, bookingData.pickupLng]);
           }
@@ -74,7 +69,6 @@ const Booking = () => {
             bookingFormState.setEndPoint([bookingData.destinationLat, bookingData.destinationLng]);
           }
           
-          // Calculate distance
           if (bookingFormState.startPoint && bookingFormState.endPoint) {
             bookingFormState.handleRouteSelect(
               bookingFormState.startPoint, 
@@ -99,7 +93,6 @@ const Booking = () => {
     }
   }, [editBookingId, isAuthenticated]);
 
-  // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
     return <Navigate to="/login" />;
   }
@@ -124,7 +117,6 @@ const Booking = () => {
       const user = JSON.parse(localStorage.getItem("user") || '{"email":"user@example.com"}');
       const customerEmail = user?.email || "";
       
-      // Determine if we're updating or creating
       const method = editBookingId ? "PUT" : "POST";
       const url = editBookingId 
         ? `http://localhost:8070/api/booking/${editBookingId}` 
@@ -295,7 +287,9 @@ const Booking = () => {
                           </div>
                           <div className="flex-1">
                             <p className="text-sm text-muted-foreground">Destination</p>
-                            <p className="font-medium">{bookingFormState.destination}</p>
+                            <div className="p-1 rounded mt-1">
+                              <p className="font-medium">{bookingFormState.destination}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -403,10 +397,11 @@ const Booking = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-muted-foreground"
+                      className="text-primary bg-primary/5 border-primary/20 hover:bg-primary/10 flex items-center gap-1.5"
                       onClick={openInvoiceDetails}
                     >
-                      View Full Details
+                      <FileText className="h-4 w-4" />
+                      View Full Details & Download
                     </Button>
                     
                     <div className="flex gap-2">
@@ -467,7 +462,6 @@ const Booking = () => {
         )}
       </div>
       
-      {/* Invoice Details Modal */}
       <InvoiceDetails 
         isOpen={isInvoiceOpen}
         onClose={() => setIsInvoiceOpen(false)}
