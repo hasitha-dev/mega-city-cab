@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -63,7 +62,6 @@ const BookingList = () => {
   const handleStatusChange = async (bookingId: string, newStatus: Booking['status']) => {
     try {
       await updateBookingStatus(bookingId, newStatus);
-      // Update the local state to reflect the change
       setBookings(prev => 
         prev.map(booking => 
           booking.id === bookingId 
@@ -87,8 +85,6 @@ const BookingList = () => {
   };
 
   const handleSaveBooking = (updatedBooking: Booking) => {
-    // In a real app, you would update the booking via API
-    // For now, we'll just update the local state
     setBookings(prev => 
       prev.map(booking => 
         booking.id === updatedBooking.id 
@@ -111,8 +107,6 @@ const BookingList = () => {
   const handleDeleteBooking = () => {
     if (!currentBooking) return;
     
-    // In a real app, you would delete the booking via API
-    // For now, we'll just update the local state
     setBookings(prev => prev.filter(booking => booking.id !== currentBooking.id));
     setIsDeleteDialogOpen(false);
     toast({
@@ -273,7 +267,6 @@ const BookingList = () => {
         )}
       </CardContent>
       
-      {/* Edit Popup */}
       {currentBooking && (
         <EditPopup
           isOpen={isEditModalOpen}
@@ -284,7 +277,6 @@ const BookingList = () => {
         />
       )}
       
-      {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}

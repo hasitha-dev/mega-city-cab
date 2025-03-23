@@ -31,18 +31,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
-
-interface Vehicle {
-  vehicle_id?: string;
-  vehicle_number: string;
-  vehicle_type: "SEDAN" | "SUV" | "VAN" | "LUXURY";
-  status: "AVAILABLE" | "UNAVAILABLE" | "active";
-  driver_id?: string;
-  driver_name: string;
-  driver_contact: string;
-  driver_nic: string;
-  driver_email: string;
-}
+import { 
+  fetchVehicles, 
+  createVehicle, 
+  updateVehicle, 
+  deleteVehicle, 
+  Vehicle 
+} from "@/services/api";
 
 const Admin = () => {
   const { user, isAuthenticated, isAdmin, loading } = useAuth();
@@ -62,41 +57,11 @@ const Admin = () => {
     driver_email: "",
   });
 
-  const fetchVehicles = async () => {
+  const fetchVehiclesData = async () => {
     try {
       setIsLoading(true);
-      console.log("Token", localStorage.getItem("accessToken"));
-
-      const response = await fetch("http://localhost:8070/api/vehicle", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        method: "GET",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Data", data.data);
-        const dataArr = JSON.parse(data.data);
-        if (Array.isArray(dataArr)) {
-          const vehicles: Vehicle[] = dataArr.map((v: any) => ({
-            vehicle_id: v.vehicle_id,
-            vehicle_number: v.vehicle_number,
-            vehicle_type: v.vehicle_type,
-            status: v.status,
-            driver_id: v.driver_id,
-            driver_name: v.driver_name,
-            driver_contact: v.driver_contact,
-            driver_nic: v.driver_nic,
-            driver_email: v.driver_email,
-          }));
-          setVehicles(vehicles);
-        } else {
-          console.error("data.data is not an array", typeof dataArr);
-          toast.error("Unexpected response format");
-        }
-      } else {
-        toast.error("Failed to fetch vehicles");
-      }
+      const vehiclesData = await fetchVehicles();
+      setVehicles(vehiclesData);
     } catch (error) {
       console.error("Error fetching vehicles:", error);
       toast.error("Failed to connect to the server");
@@ -107,7 +72,7 @@ const Admin = () => {
 
   useEffect(() => {
     if (activeTab === "vehicles") {
-      fetchVehicles();
+      fetchVehiclesData();
     }
   }, [activeTab]);
 
@@ -121,41 +86,16 @@ const Admin = () => {
 
   const handleAddVehicle = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
-      console.log("Token", token);
-
-      const vehiclePayload = {
-        vehicle_number: vehicleData.vehicle_number,
-        vehicle_type: vehicleData.vehicle_type,
-        status: "active",
-        driver_name: vehicleData.driver_name,
-        driver_contact: vehicleData.driver_contact,
-        driver_nic: vehicleData.driver_nic,
-        driver_email: vehicleData.driver_email,
-      };
-
-      const response = await fetch("http://localhost:8070/api/vehicle", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(vehiclePayload),
-      });
-
-      if (response.ok) {
-        toast.success("Vehicle added successfully");
-        fetchVehicles();
-        resetForm();
+      if (vehicleData.vehicle_id) {
+        await updateVehicle(vehicleData);
       } else {
-        const errorData = await response.json();
-        toast.error(
-          `Failed to add vehicle: ${errorData.message || "Unknown error"}`
-        );
+        await createVehicle(vehicleData);
       }
+      fetchVehiclesData();
+      resetForm();
     } catch (error) {
-      console.error("Error adding vehicle:", error);
-      toast.error("Failed to connect to the server");
+      console.error("Error saving vehicle:", error);
+      toast.error("Failed to save vehicle");
     }
   };
 
@@ -182,22 +122,11 @@ const Admin = () => {
     if (!selectedVehicle?.vehicle_id) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:8070/api/vehicle/${selectedVehicle.vehicle_id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (response.ok) {
-        toast.success("Vehicle deleted successfully");
-        fetchVehicles();
-      } else {
-        toast.error("Failed to delete vehicle");
-      }
+      await deleteVehicle(selectedVehicle.vehicle_id);
+      fetchVehiclesData();
     } catch (error) {
       console.error("Error deleting vehicle:", error);
-      toast.error("Failed to connect to the server");
+      toast.error("Failed to delete vehicle");
     } finally {
       setIsDeleteDialogOpen(false);
       setSelectedVehicle(null);

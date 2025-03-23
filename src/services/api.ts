@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 
 // Types
@@ -47,6 +46,18 @@ export interface Bill {
   total: number;
   status: 'pending' | 'paid';
   createdAt: string;
+}
+
+export interface Vehicle {
+  vehicle_id?: string;
+  vehicle_number: string;
+  vehicle_type: "SEDAN" | "SUV" | "VAN" | "LUXURY";
+  status: "AVAILABLE" | "UNAVAILABLE" | "active";
+  driver_id?: string;
+  driver_name: string;
+  driver_contact: string;
+  driver_nic: string;
+  driver_email: string;
 }
 
 // Mock data
@@ -182,7 +193,19 @@ const mockBills: Bill[] = [
 // Utility to simulate API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// API Functions
+// API base URL
+const API_BASE_URL = "http://localhost:8070/api";
+
+// Helper function to get auth header
+const getAuthHeader = () => {
+  const token = localStorage.getItem("accessToken");
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+};
+
+// API Functions for Bookings
 export const fetchBookings = async (userId?: string): Promise<Booking[]> => {
   try {
     await delay(800);
@@ -208,18 +231,32 @@ export const fetchBookingById = async (id: string): Promise<Booking | undefined>
   }
 };
 
-export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt' | 'status'>): Promise<Booking> => {
+export const createBooking = async (bookingData: any): Promise<Booking> => {
   try {
-    await delay(1000);
-    const newBooking: Booking = {
-      ...bookingData,
-      id: `${mockBookings.length + 1}`,
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    };
-    mockBookings.push(newBooking);
+    const response = await fetch(`${API_BASE_URL}/booking`, {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: JSON.stringify({
+        tripId: bookingData.tripId || Math.random().toString(36).substring(2, 10),
+        vehicleType: bookingData.vehicleType,
+        customerEmail: bookingData.customerEmail,
+        date: new Date(bookingData.date).getTime(),
+        destination: bookingData.destination,
+        startLocation: bookingData.startLocation,
+        startTime: bookingData.startTime,
+        fare: bookingData.fare.toString(),
+        distance: bookingData.distance.toString(),
+        passengerCount: bookingData.passengerCount
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
     toast.success('Booking created successfully.');
-    return newBooking;
+    return data;
   } catch (error) {
     console.error('Error creating booking:', error);
     toast.error('Failed to create booking. Please try again.');
@@ -240,6 +277,114 @@ export const updateBookingStatus = async (id: string, status: Booking['status'])
   } catch (error) {
     console.error('Error updating booking status:', error);
     toast.error('Failed to update booking status. Please try again.');
+    throw error;
+  }
+};
+
+// API Functions for Vehicles
+export const fetchVehicles = async (): Promise<Vehicle[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vehicle`, {
+      method: 'GET',
+      headers: getAuthHeader()
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.data) {
+      const dataArr = JSON.parse(result.data);
+      if (Array.isArray(dataArr)) {
+        return dataArr.map((v: any) => ({
+          vehicle_id: v.vehicle_id,
+          vehicle_number: v.vehicle_number,
+          vehicle_type: v.vehicle_type,
+          status: v.status,
+          driver_id: v.driver_id,
+          driver_name: v.driver_name,
+          driver_contact: v.driver_contact,
+          driver_nic: v.driver_nic,
+          driver_email: v.driver_email,
+        }));
+      }
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching vehicles:', error);
+    toast.error('Failed to fetch vehicles. Please try again.');
+    throw error;
+  }
+};
+
+export const createVehicle = async (vehicleData: Omit<Vehicle, 'vehicle_id'>): Promise<Vehicle> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vehicle`, {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: JSON.stringify({
+        vehicle_number: vehicleData.vehicle_number,
+        vehicle_type: vehicleData.vehicle_type,
+        status: "active",
+        driver_name: vehicleData.driver_name,
+        driver_contact: vehicleData.driver_contact,
+        driver_nic: vehicleData.driver_nic,
+        driver_email: vehicleData.driver_email,
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    toast.success('Vehicle added successfully.');
+    return result;
+  } catch (error) {
+    console.error('Error adding vehicle:', error);
+    toast.error('Failed to add vehicle. Please try again.');
+    throw error;
+  }
+};
+
+export const updateVehicle = async (vehicleData: Vehicle): Promise<Vehicle> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vehicle`, {
+      method: 'PUT',
+      headers: getAuthHeader(),
+      body: JSON.stringify(vehicleData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    toast.success('Vehicle updated successfully.');
+    return result;
+  } catch (error) {
+    console.error('Error updating vehicle:', error);
+    toast.error('Failed to update vehicle. Please try again.');
+    throw error;
+  }
+};
+
+export const deleteVehicle = async (vehicleId: string): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vehicle?vehicleId=${vehicleId}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    toast.success('Vehicle deleted successfully.');
+  } catch (error) {
+    console.error('Error deleting vehicle:', error);
+    toast.error('Failed to delete vehicle. Please try again.');
     throw error;
   }
 };
@@ -273,41 +418,6 @@ export const fetchBill = async (bookingId: string): Promise<Bill | undefined> =>
   } catch (error) {
     console.error('Error fetching bill:', error);
     toast.error('Failed to fetch billing information. Please try again.');
-    throw error;
-  }
-};
-
-export const createCar = async (carData: Omit<Car, 'id'>): Promise<Car> => {
-  try {
-    await delay(1000);
-    const newCar: Car = {
-      ...carData,
-      id: `${mockCars.length + 1}`
-    };
-    mockCars.push(newCar);
-    toast.success('Car added successfully.');
-    return newCar;
-  } catch (error) {
-    console.error('Error adding car:', error);
-    toast.error('Failed to add car. Please try again.');
-    throw error;
-  }
-};
-
-export const createDriver = async (driverData: Omit<Driver, 'id' | 'rating'>): Promise<Driver> => {
-  try {
-    await delay(1000);
-    const newDriver: Driver = {
-      ...driverData,
-      id: `${mockDrivers.length + 1}`,
-      rating: 5.0
-    };
-    mockDrivers.push(newDriver);
-    toast.success('Driver added successfully.');
-    return newDriver;
-  } catch (error) {
-    console.error('Error adding driver:', error);
-    toast.error('Failed to add driver. Please try again.');
     throw error;
   }
 };
