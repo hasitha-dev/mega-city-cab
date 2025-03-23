@@ -80,8 +80,10 @@ const BookingList = () => {
   };
 
   const handleEdit = (booking: Booking) => {
-    setCurrentBooking(booking);
-    setIsEditModalOpen(true);
+    toast({
+      title: "Contact Support",
+      description: "Please contact us at 0756732453 for booking changes",
+    });
   };
 
   const handleSaveBooking = (updatedBooking: Booking) => {
@@ -100,8 +102,10 @@ const BookingList = () => {
   };
 
   const handleDeletePrompt = (booking: Booking) => {
-    setCurrentBooking(booking);
-    setIsDeleteDialogOpen(true);
+    toast({
+      title: "Contact Support",
+      description: "Please contact us at 0756732453 for booking changes",
+    });
   };
 
   const handleDeleteBooking = () => {

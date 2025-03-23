@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 interface ApiBooking {
   tripId: string;
@@ -60,6 +61,7 @@ const Dashboard = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [apiBookings, setApiBookings] = useState<ApiBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeVehicles, setActiveVehicles] = useState(8);
 
   useEffect(() => {
     // Fetch bookings from API
@@ -113,6 +115,10 @@ const Dashboard = () => {
     }
   }, [user?.email]);
 
+  const handleActionClick = () => {
+    toast.info("Please contact us at 0756732453 for booking changes");
+  };
+
   // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
     return <Navigate to="/login" />;
@@ -162,7 +168,7 @@ const Dashboard = () => {
               <Car className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">12</div>
+              <div className="text-3xl font-bold">{activeVehicles}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Out of 15 total
               </p>
@@ -177,7 +183,7 @@ const Dashboard = () => {
               <Users className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">8</div>
+              <div className="text-3xl font-bold">{activeVehicles}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 3 currently on trips
               </p>
@@ -199,12 +205,13 @@ const Dashboard = () => {
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Fare</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {apiBookings.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
+                      <TableCell colSpan={7} className="text-center py-8">
                         No bookings found. Book your first ride now!
                       </TableCell>
                     </TableRow>
@@ -224,6 +231,11 @@ const Dashboard = () => {
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                             Scheduled
                           </span>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="outline" size="sm" onClick={handleActionClick}>
+                            Edit/Cancel
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))

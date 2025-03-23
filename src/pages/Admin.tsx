@@ -57,6 +57,8 @@ const Admin = () => {
     driver_email: "",
   });
 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   const fetchVehiclesData = async () => {
     try {
       setIsLoading(true);
@@ -78,13 +80,63 @@ const Admin = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVehicleData({ ...vehicleData, [e.target.id]: e.target.value });
+    
+    if (formErrors[e.target.id]) {
+      setFormErrors({
+        ...formErrors,
+        [e.target.id]: ""
+      });
+    }
   };
 
   const handleSelectChange = (field: string, value: string) => {
     setVehicleData({ ...vehicleData, [field]: value });
+    
+    if (formErrors[field]) {
+      setFormErrors({
+        ...formErrors,
+        [field]: ""
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!vehicleData.vehicle_number) {
+      errors.vehicle_number = "Vehicle number is required";
+    }
+    
+    if (!vehicleData.driver_name) {
+      errors.driver_name = "Driver name is required";
+    }
+    
+    if (!vehicleData.driver_contact) {
+      errors.driver_contact = "Driver contact is required";
+    } else if (!/^\d{10}$/.test(vehicleData.driver_contact)) {
+      errors.driver_contact = "Driver contact should be a 10-digit number";
+    }
+    
+    if (!vehicleData.driver_nic) {
+      errors.driver_nic = "Driver NIC is required";
+    }
+    
+    if (!vehicleData.driver_email) {
+      errors.driver_email = "Driver email is required";
+    } else if (!/\S+@\S+\.\S+/.test(vehicleData.driver_email)) {
+      errors.driver_email = "Invalid email format";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleAddVehicle = async () => {
+    if (!validateForm()) {
+      toast.error("Please fix the errors in the form");
+      return;
+    }
+    
     try {
       if (vehicleData.vehicle_id) {
         await updateVehicle(vehicleData);
@@ -143,6 +195,7 @@ const Admin = () => {
       driver_nic: "",
       driver_email: "",
     });
+    setFormErrors({});
   };
 
   if (!loading && !isAuthenticated) {
@@ -186,12 +239,6 @@ const Admin = () => {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{vehicles.length || 0}</div>
-              {/* <p className="text-xs text-muted-foreground mt-1">
-                {(vehicles &&
-                  vehicles.filter((v) => v.status === "MAINTENANCE").length) ||
-                  0}{" "}
-                in maintenance
-              </p> */}
             </CardContent>
           </Card>
 
@@ -203,9 +250,11 @@ const Admin = () => {
               <Users className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">24</div>
+              <div className="text-3xl font-bold">
+                {vehicles.filter(v => v.status === "AVAILABLE").length}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                18 currently on duty
+                {vehicles.filter(v => v.status === "AVAILABLE").length} currently on duty
               </p>
             </CardContent>
           </Card>
@@ -451,7 +500,11 @@ const Admin = () => {
                       placeholder="e.g. ABC-1234"
                       value={vehicleData.vehicle_number}
                       onChange={handleChange}
+                      className={formErrors.vehicle_number ? "border-red-500" : ""}
                     />
+                    {formErrors.vehicle_number && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.vehicle_number}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -487,13 +540,12 @@ const Admin = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="AVAILABLE">Available</SelectItem>
-                        <SelectItem value="UNAVAILABLE">Unavailable</SelectItem>
-                        <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                        <SelectItem value="NON_AVAILABLE">Non Available</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="driver_name">Driver Name</Label>
                     <Input
                       placeholder="e.g. John Smith"
@@ -501,19 +553,27 @@ const Admin = () => {
                       type="text"
                       value={vehicleData.driver_name}
                       onChange={handleChange}
+                      className={formErrors.driver_name ? "border-red-500" : ""}
                     />
+                    {formErrors.driver_name && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.driver_name}</p>
+                    )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="driver_contact">Driver Contact</Label>
                     <Input
-                      placeholder="e.g. (555) 123-4567"
+                      placeholder="e.g. 0712345678"
                       id="driver_contact"
                       type="tel"
                       value={vehicleData.driver_contact}
                       onChange={handleChange}
+                      className={formErrors.driver_contact ? "border-red-500" : ""}
                     />
+                    {formErrors.driver_contact && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.driver_contact}</p>
+                    )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="driver_nic">Driver NIC</Label>
                     <Input
                       placeholder="e.g. 123456789V"
@@ -521,9 +581,13 @@ const Admin = () => {
                       type="text"
                       value={vehicleData.driver_nic}
                       onChange={handleChange}
+                      className={formErrors.driver_nic ? "border-red-500" : ""}
                     />
+                    {formErrors.driver_nic && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.driver_nic}</p>
+                    )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="driver_email">Driver Email</Label>
                     <Input
                       placeholder="e.g. john@example.com"
@@ -531,7 +595,11 @@ const Admin = () => {
                       type="email"
                       value={vehicleData.driver_email}
                       onChange={handleChange}
+                      className={formErrors.driver_email ? "border-red-500" : ""}
                     />
+                    {formErrors.driver_email && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.driver_email}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
