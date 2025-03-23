@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 
 // Types
@@ -400,6 +401,24 @@ export const fetchCars = async (): Promise<Car[]> => {
   }
 };
 
+// Add missing createCar function
+export const createCar = async (carData: Omit<Car, "id">): Promise<Car> => {
+  try {
+    await delay(800);
+    const newCar: Car = {
+      ...carData,
+      id: Math.random().toString(36).substring(2, 10),
+    };
+    mockCars.push(newCar);
+    toast.success('Car added successfully.');
+    return newCar;
+  } catch (error) {
+    console.error('Error creating car:', error);
+    toast.error('Failed to add car. Please try again.');
+    throw error;
+  }
+};
+
 export const fetchDrivers = async (): Promise<Driver[]> => {
   try {
     await delay(800);
@@ -407,6 +426,25 @@ export const fetchDrivers = async (): Promise<Driver[]> => {
   } catch (error) {
     console.error('Error fetching drivers:', error);
     toast.error('Failed to fetch drivers. Please try again.');
+    throw error;
+  }
+};
+
+// Add missing createDriver function
+export const createDriver = async (driverData: Omit<Driver, "id" | "rating">): Promise<Driver> => {
+  try {
+    await delay(800);
+    const newDriver: Driver = {
+      ...driverData,
+      id: Math.random().toString(36).substring(2, 10),
+      rating: 5.0, // Default rating for new drivers
+    };
+    mockDrivers.push(newDriver);
+    toast.success('Driver added successfully.');
+    return newDriver;
+  } catch (error) {
+    console.error('Error creating driver:', error);
+    toast.error('Failed to add driver. Please try again.');
     throw error;
   }
 };
