@@ -44,7 +44,18 @@ const Dashboard = () => {
   useEffect(() => {
     // Simulate fetching bookings from an API
     const fetchBookings = async () => {
-      const response = await fetch("/api/bookings");
+      const response = await fetch(
+        `http://localhost:8070/api/booking?userEmail=${encodeURIComponent(
+          user.email
+        )}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
       const data = await response.json();
       setBookings(data);
     };
