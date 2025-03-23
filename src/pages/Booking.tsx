@@ -144,7 +144,7 @@ const Booking = () => {
         vehicleType: bookingFormState.vehicleType,
         fare: calculateFare(
           bookingFormState.distance || 0,
-          bookingFormState.vehicleType || "sedan"
+          bookingFormState.vehicleType || "Sedan"
         ).toFixed(2),
       };
 
@@ -200,7 +200,7 @@ const Booking = () => {
   const getFare = () => {
     return calculateFare(
       bookingFormState.distance || 0,
-      bookingFormState.vehicleType || "sedan"
+      bookingFormState.vehicleType || "Sedan"
     );
   };
 
@@ -396,7 +396,7 @@ const Booking = () => {
                                 suv: "300",
                                 van: "400",
                                 luxury: "600",
-                              }[bookingFormState.vehicleType || "sedan"]
+                              }[bookingFormState.vehicleType || "Sedan"]
                             }
                           </span>
                         </div>
@@ -413,7 +413,7 @@ const Booking = () => {
                                 suv: "65",
                                 van: "80",
                                 luxury: "100",
-                              }[bookingFormState.vehicleType || "sedan"]
+                              }[bookingFormState.vehicleType || "Sedan"]
                             }
                           </span>
                         </div>

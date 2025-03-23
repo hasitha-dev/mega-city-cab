@@ -1,4 +1,3 @@
-
 import React, { useRef } from "react";
 import {
   Dialog,
@@ -76,19 +75,19 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
       van: 400,
       luxury: 600,
     };
-    
+
     const ratePerKm = {
       sedan: 50,
       suv: 65,
       van: 80,
       luxury: 100,
     };
-    
+
     const vehicle = vehicleType as keyof typeof baseFares;
     const baseFare = baseFares[vehicle] || 200;
     const rate = ratePerKm[vehicle] || 50;
     const distanceValue = distance || 0;
-    
+
     return baseFare + rate * distanceValue;
   };
 
@@ -110,7 +109,9 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
             <CardContent className="p-6 space-y-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-bold text-primary">Ride Invoice</h2>
+                  <h2 className="text-xl font-bold text-primary">
+                    Ride Invoice
+                  </h2>
                   <p className="text-sm text-gray-400">
                     {new Date().toLocaleDateString()}
                   </p>
@@ -143,8 +144,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                     </div>
                   </div>
 
-                  <div className="relative ml-3 pl-3 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-gray-700">
-                  </div>
+                  <div className="relative ml-3 pl-3 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-gray-700"></div>
 
                   <div className="flex items-start space-x-3">
                     <div className="min-w-6 mt-0.5">
@@ -172,22 +172,32 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <span className="text-xs text-gray-500">Date</span>
-                          <p className="text-sm font-medium text-gray-300">{pickupDate}</p>
+                          <p className="text-sm font-medium text-gray-300">
+                            {pickupDate}
+                          </p>
                         </div>
                         <div>
                           <span className="text-xs text-gray-500">Time</span>
-                          <p className="text-sm font-medium text-gray-300">{pickupTime}</p>
+                          <p className="text-sm font-medium text-gray-300">
+                            {pickupTime}
+                          </p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <span className="text-xs text-gray-500">Vehicle</span>
-                          <p className="text-sm font-medium text-gray-300 capitalize">{vehicleType}</p>
+                          <p className="text-sm font-medium text-gray-300 capitalize">
+                            {vehicleType}
+                          </p>
                         </div>
                         <div>
-                          <span className="text-xs text-gray-500">Passengers</span>
-                          <p className="text-sm font-medium text-gray-300">{passengers}</p>
+                          <span className="text-xs text-gray-500">
+                            Passengers
+                          </span>
+                          <p className="text-sm font-medium text-gray-300">
+                            {passengers}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -206,33 +216,41 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                           {distance?.toFixed(2) || 0} km
                         </span>
                       </div>
-                      
+
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-400">Base fare</span>
                         <span className="text-sm font-medium text-gray-300">
-                          LKR {{
-                            sedan: "200",
-                            suv: "300",
-                            van: "400",
-                            luxury: "600",
-                          }[vehicleType || 'sedan']}
+                          LKR{" "}
+                          {
+                            {
+                              sedan: "200",
+                              suv: "300",
+                              van: "400",
+                              luxury: "600",
+                            }[vehicleType || "Sedan"]
+                          }
                         </span>
                       </div>
-                      
+
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-400">Rate per km</span>
+                        <span className="text-sm text-gray-400">
+                          Rate per km
+                        </span>
                         <span className="text-sm font-medium text-gray-300">
-                          LKR {{
-                            sedan: "50",
-                            suv: "65",
-                            van: "80",
-                            luxury: "100",
-                          }[vehicleType || 'sedan']}
+                          LKR{" "}
+                          {
+                            {
+                              sedan: "50",
+                              suv: "65",
+                              van: "80",
+                              luxury: "100",
+                            }[vehicleType || "Sedan"]
+                          }
                         </span>
                       </div>
-                      
+
                       <Separator className="my-2 bg-gray-700" />
-                      
+
                       <div className="flex justify-between font-medium">
                         <span className="text-sm text-white">Total</span>
                         <span className="text-primary">
@@ -255,8 +273,8 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={onClose}
             className="w-full sm:w-auto order-2 sm:order-1 bg-transparent text-white border-gray-700 hover:bg-gray-800"
           >

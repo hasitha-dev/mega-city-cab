@@ -1,26 +1,50 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CircleDashed, Plus, Car as CarIcon, Edit, RefreshCw } from 'lucide-react';
-import { fetchCars, createCar, Car } from '@/services/api';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  CircleDashed,
+  Plus,
+  Car as CarIcon,
+  Edit,
+  RefreshCw,
+} from "lucide-react";
+import { fetchCars, createCar, Car } from "@/services/api";
 
 const CarList = () => {
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [newCar, setNewCar] = useState<Omit<Car, 'id'>>({
-    model: '',
-    licensePlate: '',
+  const [newCar, setNewCar] = useState<Omit<Car, "id">>({
+    model: "",
+    licensePlate: "",
     capacity: 4,
-    type: 'standard',
-    status: 'available',
-    imageUrl: '/placeholder.svg'
+    type: "standard",
+    status: "available",
+    imageUrl: "/placeholder.svg",
   });
 
   useEffect(() => {
@@ -33,7 +57,7 @@ const CarList = () => {
       const data = await fetchCars();
       setCars(data);
     } catch (error) {
-      console.error('Error loading cars:', error);
+      console.error("Error loading cars:", error);
     } finally {
       setLoading(false);
     }
@@ -47,31 +71,31 @@ const CarList = () => {
       setOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Error creating car:', error);
+      console.error("Error creating car:", error);
     }
   };
 
   const resetForm = () => {
     setNewCar({
-      model: '',
-      licensePlate: '',
+      model: "",
+      licensePlate: "",
       capacity: 4,
-      type: 'standard',
-      status: 'available',
-      imageUrl: '/placeholder.svg'
+      type: "standard",
+      status: "available",
+      imageUrl: "/placeholder.svg",
     });
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'in-use':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'maintenance':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case "available":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "in-use":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "maintenance":
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return '';
+        return "";
     }
   };
 
@@ -105,7 +129,9 @@ const CarList = () => {
                     <Input
                       id="model"
                       value={newCar.model}
-                      onChange={(e) => setNewCar({ ...newCar, model: e.target.value })}
+                      onChange={(e) =>
+                        setNewCar({ ...newCar, model: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -114,18 +140,22 @@ const CarList = () => {
                     <Input
                       id="licensePlate"
                       value={newCar.licensePlate}
-                      onChange={(e) => setNewCar({ ...newCar, licensePlate: e.target.value })}
+                      onChange={(e) =>
+                        setNewCar({ ...newCar, licensePlate: e.target.value })
+                      }
                       required
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="capacity">Capacity</Label>
                     <Select
                       value={newCar.capacity.toString()}
-                      onValueChange={(value) => setNewCar({ ...newCar, capacity: parseInt(value) })}
+                      onValueChange={(value) =>
+                        setNewCar({ ...newCar, capacity: parseInt(value) })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select capacity" />
@@ -142,7 +172,9 @@ const CarList = () => {
                     <Label htmlFor="type">Type</Label>
                     <Select
                       value={newCar.type}
-                      onValueChange={(value) => setNewCar({ ...newCar, type: value })}
+                      onValueChange={(value) =>
+                        setNewCar({ ...newCar, type: value })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select car type" />
@@ -150,20 +182,20 @@ const CarList = () => {
                       <SelectContent>
                         <SelectItem value="standard">Standard</SelectItem>
                         <SelectItem value="premium">Premium</SelectItem>
-                        <SelectItem value="suv">SUV</SelectItem>
+                        <SelectItem value="SUV">SUV</SelectItem>
                         <SelectItem value="electric">Electric</SelectItem>
                         <SelectItem value="hybrid">Hybrid</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={newCar.status}
-                    onValueChange={(value) => 
-                      setNewCar({ ...newCar, status: value as Car['status'] })
+                    onValueChange={(value) =>
+                      setNewCar({ ...newCar, status: value as Car["status"] })
                     }
                   >
                     <SelectTrigger>
@@ -176,7 +208,7 @@ const CarList = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <DialogFooter>
                   <Button type="submit">Save Car</Button>
                 </DialogFooter>
@@ -201,18 +233,23 @@ const CarList = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {cars.map((car) => (
-              <Card key={car.id} className="overflow-hidden hover:border-primary/50 transition-all duration-200">
+              <Card
+                key={car.id}
+                className="overflow-hidden hover:border-primary/50 transition-all duration-200"
+              >
                 <div className="aspect-[3/2] bg-muted relative">
                   <img
                     src={car.imageUrl}
                     alt={car.model}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.currentTarget.src = '/placeholder.svg';
+                      e.currentTarget.src = "/placeholder.svg";
                     }}
                   />
-                  <Badge 
-                    className={`absolute top-2 right-2 ${getStatusColor(car.status)}`}
+                  <Badge
+                    className={`absolute top-2 right-2 ${getStatusColor(
+                      car.status
+                    )}`}
                   >
                     {car.status}
                   </Badge>
@@ -221,16 +258,16 @@ const CarList = () => {
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h3 className="font-medium text-lg">{car.model}</h3>
-                      <p className="text-sm text-muted-foreground">License: {car.licensePlate}</p>
+                      <p className="text-sm text-muted-foreground">
+                        License: {car.licensePlate}
+                      </p>
                     </div>
                     <Button variant="ghost" size="icon">
                       <Edit className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <Badge variant="outline">
-                      {car.capacity} seats
-                    </Badge>
+                    <Badge variant="outline">{car.capacity} seats</Badge>
                     <Badge variant="outline" className="capitalize">
                       {car.type}
                     </Badge>
