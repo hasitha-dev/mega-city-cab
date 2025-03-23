@@ -41,7 +41,7 @@ interface Vehicle {
   vehicle_id?: string;
   vehicle_number: string;
   vehicle_type: "SEDAN" | "SUV" | "VAN" | "LUXURY";
-  status: "AVAILABLE" | "UNAVAILABLE";
+  status: "AVAILABLE" | "UNAVAILABLE" | "active";
   driver_id?: string;
   driver_name: string;
   driver_contact: string;
@@ -134,13 +134,23 @@ const Admin = () => {
       const token = localStorage.getItem("accessToken");
       console.log("Token", token);
 
+      const vehiclePayload = {
+        vehicle_number: vehicleData.vehicle_number,
+        vehicle_type: vehicleData.vehicle_type,
+        status: "active",
+        driver_name: vehicleData.driver_name,
+        driver_contact: vehicleData.driver_contact,
+        driver_nic: vehicleData.driver_nic,
+        driver_email: vehicleData.driver_email,
+      };
+
       const response = await fetch("http://localhost:8070/api/vehicle", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(vehicleData),
+        body: JSON.stringify(vehiclePayload),
       });
 
       if (response.ok) {
@@ -219,21 +229,16 @@ const Admin = () => {
     });
   };
 
-  // Handle driver function
-
   // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
     console.log("Not authenticated");
-
     return <Navigate to="/login" />;
   }
 
   // Redirect to dashboard if not an admin
   if (!loading && user?.role !== "admin") {
     console.log(user);
-
     console.log("Not an admin");
-
     return <Navigate to="/dashboard" />;
   }
 
