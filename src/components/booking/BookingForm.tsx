@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -7,7 +8,7 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Calendar, Clock, Car, DollarSign, Users, Route } from "lucide-react";
+import { Calendar, Clock, Car, Users, Route } from "lucide-react";
 import { toast } from "sonner";
 import LocationInput from "@/components/map/LocationInput";
 import VehicleSelection from "@/components/VehicleSelection";

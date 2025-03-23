@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Edit, Trash2, X, AlertTriangle, MapPin } from "lucide-react";
+import { Edit, Trash2, X, MapPin } from "lucide-react";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import LocationInput from "@/components/map/LocationInput";
 import { calculateFare } from "@/utils/mapUtils";

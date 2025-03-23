@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Card,
@@ -107,7 +108,7 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
                   <span className="text-xs text-muted-foreground uppercase">
                     Vehicle
                   </span>
-                  <p className="text-sm capitalize">{vehicleType}</p>
+                  <p className="text-sm capitalize">{vehicleType.toLowerCase()}</p>
                 </div>
               </div>
 
@@ -144,18 +145,18 @@ const RouteSelectionCard: React.FC<RouteSelectionCardProps> = ({
                     LKR{" "}
                     {(
                       distance *
-                        (vehicleType === "Sedan"
+                        (vehicleType === "Sedan" || vehicleType === "SEDAN"
                           ? 100
-                          : vehicleType === "suv"
+                          : vehicleType === "SUV"
                           ? 150
-                          : vehicleType === "van"
+                          : vehicleType === "Van" || vehicleType === "VAN"
                           ? 200
                           : 300) +
-                      (vehicleType === "Sedan"
+                      (vehicleType === "Sedan" || vehicleType === "SEDAN"
                         ? 200
-                        : vehicleType === "suv"
+                        : vehicleType === "SUV"
                         ? 300
-                        : vehicleType === "van"
+                        : vehicleType === "Van" || vehicleType === "VAN"
                         ? 400
                         : 600)
                     ).toFixed(2)}

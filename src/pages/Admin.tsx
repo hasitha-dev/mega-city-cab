@@ -27,11 +27,6 @@ import {
   Settings,
   AlertTriangle,
   BarChart,
-  Plus,
-  Search,
-  Filter,
-  Map,
-  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
@@ -60,7 +55,7 @@ const Admin = () => {
   // Vehicle form state
   const [vehicleData, setVehicleData] = useState<Vehicle>({
     vehicle_number: "",
-    vehicle_type: "LUXURY",
+    vehicle_type: "SEDAN",
     status: "AVAILABLE",
     driver_name: "",
     driver_contact: "",
@@ -220,7 +215,7 @@ const Admin = () => {
   const resetForm = () => {
     setVehicleData({
       vehicle_number: "",
-      vehicle_type: "LUXURY",
+      vehicle_type: "SEDAN",
       status: "AVAILABLE",
       driver_name: "",
       driver_contact: "",
@@ -552,10 +547,10 @@ const Admin = () => {
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="STANDARD">Standard</SelectItem>
+                        <SelectItem value="SEDAN">Sedan</SelectItem>
                         <SelectItem value="SUV">SUV</SelectItem>
-                        <SelectItem value="SEDAN">SEDAN</SelectItem>
                         <SelectItem value="VAN">Van</SelectItem>
+                        <SelectItem value="LUXURY">Luxury</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
