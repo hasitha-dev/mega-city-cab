@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -27,6 +28,28 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+interface ApiBooking {
+  tripId: string;
+  vehicleType: string;
+  customerEmail: string;
+  date: number;
+  destination: string;
+  startLocation: string;
+  startTime: string;
+  fare: string;
+  distance: string;
+  passengerCount: number;
+}
 
 interface Booking {
   id: string;
@@ -36,39 +59,78 @@ interface Booking {
   status: "Completed" | "Scheduled" | "In Progress";
 }
 
+interface ApiResponse {
+  success: string;
+  description: string;
+  message: string;
+  data: string; // JSON string that needs to be parsed
+}
+
 const Dashboard = () => {
   const { user, isAuthenticated, loading } = useAuth();
   const [activeRow, setActiveRow] = useState<string | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [apiBookings, setApiBookings] = useState<ApiBooking[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching bookings from an API
+    // Fetch bookings from API
     const fetchBookings = async () => {
-      const response = await fetch(
-        `http://localhost:8070/api/booking?userEmail=${encodeURIComponent(
-          user.email
-        )}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `http://localhost:8070/api/booking?userEmail=${encodeURIComponent(
+            user.email
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          }
+        );
+        
+        const responseData: ApiResponse = await response.json();
+        
+        if (responseData.success) {
+          // Parse the data string into an array of bookings
+          const parsedBookings: ApiBooking[] = JSON.parse(responseData.data);
+          setApiBookings(parsedBookings);
+          
+          // Convert API bookings to our Booking format
+          const formattedBookings: Booking[] = parsedBookings.map(booking => ({
+            id: booking.tripId,
+            pickup: booking.startLocation,
+            destination: booking.destination,
+            date: new Date(booking.date).toLocaleDateString() + ' ' + booking.startTime,
+            status: "Scheduled" // Default status
+          }));
+          
+          setBookings(formattedBookings);
+          toast.success("Bookings loaded successfully");
+        } else {
+          toast.error("Failed to load bookings");
         }
-      );
-      const data = await response.json();
-      setBookings(data);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+        toast.error("Error loading bookings");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    fetchBookings();
-  }, []);
+    if (user?.email) {
+      fetchBookings();
+    }
+  }, [user?.email]);
 
   // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
     return <Navigate to="/login" />;
   }
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         Loading...
@@ -118,9 +180,9 @@ const Dashboard = () => {
               <CalendarCheck className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">7</div>
+              <div className="text-3xl font-bold">{bookings.length}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                2 upcoming today
+                Your current bookings
               </p>
             </CardContent>
           </Card>
@@ -161,125 +223,127 @@ const Dashboard = () => {
         <Card>
           <CardContent className="p-0">
             <div className="relative overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-muted">
-                  <tr>
-                    <th scope="col" className="px-6 py-3">
-                      Booking ID
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Pickup
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Destination
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Date
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((booking) => (
-                    <tr
-                      key={booking.id}
-                      className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 relative"
-                    >
-                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                        {booking.id}
-                      </td>
-                      <td className="px-6 py-4">{booking.pickup}</td>
-                      <td className="px-6 py-4">{booking.destination}</td>
-                      <td className="px-6 py-4">{booking.date}</td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            booking.status === "Completed"
-                              ? "bg-green-100 text-green-800"
-                              : booking.status === "Scheduled"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-amber-100 text-amber-800"
-                          }`}
-                        >
-                          {booking.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  className="p-1 hover:bg-gray-100 rounded-full"
-                                  onClick={() =>
-                                    setActiveRow(
-                                      activeRow === booking.id
-                                        ? null
-                                        : booking.id
-                                    )
-                                  }
-                                >
-                                  <MoreVertical className="h-4 w-4 text-gray-500" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-xs">Booking actions</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Booking ID</TableHead>
+                    <TableHead>Pickup</TableHead>
+                    <TableHead>Destination</TableHead>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Fare</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {apiBookings.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        No bookings found. Book your first ride now!
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    apiBookings.map((booking) => (
+                      <TableRow key={booking.tripId}>
+                        <TableCell className="font-medium">
+                          {booking.tripId.substring(0, 8)}...
+                        </TableCell>
+                        <TableCell>{booking.startLocation}</TableCell>
+                        <TableCell>{booking.destination}</TableCell>
+                        <TableCell>
+                          {format(new Date(booking.date), 'MMM dd, yyyy')} at {booking.startTime}
+                        </TableCell>
+                        <TableCell>${booking.fare}</TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            Scheduled
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2 relative">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    className="p-1 hover:bg-gray-100 rounded-full"
+                                    onClick={() =>
+                                      setActiveRow(
+                                        activeRow === booking.tripId
+                                          ? null
+                                          : booking.tripId
+                                      )
+                                    }
+                                  >
+                                    <MoreVertical className="h-4 w-4 text-gray-500" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-xs">Booking actions</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
 
-                          {activeRow === booking.id && (
-                            <div className="absolute right-16 top-3 bg-white shadow-lg rounded-md border z-10 py-1 px-2">
-                              <div className="flex items-center justify-between pb-1">
-                                <p className="text-xs font-semibold">Actions</p>
-                                <button
-                                  onClick={() => setActiveRow(null)}
-                                  className="text-gray-500 hover:text-gray-700"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
+                            {activeRow === booking.tripId && (
+                              <div className="absolute right-0 top-0 bg-white shadow-lg rounded-md border z-10 py-1 px-2">
+                                <div className="flex items-center justify-between pb-1">
+                                  <p className="text-xs font-semibold">Actions</p>
+                                  <button
+                                    onClick={() => setActiveRow(null)}
+                                    className="text-gray-500 hover:text-gray-700"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                                <div className="space-y-1 pt-1 border-t">
+                                  <button
+                                    className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
+                                    onClick={() => handleView({
+                                      id: booking.tripId,
+                                      pickup: booking.startLocation,
+                                      destination: booking.destination,
+                                      date: new Date(booking.date).toLocaleDateString() + ' ' + booking.startTime,
+                                      status: "Scheduled"
+                                    })}
+                                  >
+                                    <Eye className="h-3 w-3 text-gray-500" />
+                                    <span className="text-xs">View</span>
+                                  </button>
+                                  <button
+                                    className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
+                                    onClick={() => handleEdit({
+                                      id: booking.tripId,
+                                      pickup: booking.startLocation,
+                                      destination: booking.destination,
+                                      date: new Date(booking.date).toLocaleDateString() + ' ' + booking.startTime,
+                                      status: "Scheduled"
+                                    })}
+                                  >
+                                    <Pencil className="h-3 w-3 text-blue-500" />
+                                    <span className="text-xs">Edit</span>
+                                  </button>
+                                  <button
+                                    className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
+                                    onClick={() => handleDelete({
+                                      id: booking.tripId,
+                                      pickup: booking.startLocation,
+                                      destination: booking.destination,
+                                      date: new Date(booking.date).toLocaleDateString() + ' ' + booking.startTime,
+                                      status: "Scheduled"
+                                    })}
+                                  >
+                                    <Trash2 className="h-3 w-3 text-red-500" />
+                                    <span className="text-xs">Cancel</span>
+                                  </button>
+                                </div>
                               </div>
-                              <div className="space-y-1 pt-1 border-t">
-                                <button
-                                  className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
-                                  onClick={() => handleView(booking)}
-                                >
-                                  <Eye className="h-3 w-3 text-gray-500" />
-                                  <span className="text-xs">View</span>
-                                </button>
-
-                                {booking.status !== "Completed" && (
-                                  <>
-                                    <button
-                                      className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
-                                      onClick={() => handleEdit(booking)}
-                                    >
-                                      <Pencil className="h-3 w-3 text-blue-500" />
-                                      <span className="text-xs">Edit</span>
-                                    </button>
-                                    <button
-                                      className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
-                                      onClick={() => handleDelete(booking)}
-                                    >
-                                      <Trash2 className="h-3 w-3 text-red-500" />
-                                      <span className="text-xs">Cancel</span>
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
