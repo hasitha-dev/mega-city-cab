@@ -27,11 +27,11 @@ import {
   Settings,
   AlertTriangle,
   BarChart,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 
-// Define vehicle interfaces based on the provided Java entity
 interface Vehicle {
   vehicle_id?: string;
   vehicle_number: string;
@@ -52,7 +52,6 @@ const Admin = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
-  // Vehicle form state
   const [vehicleData, setVehicleData] = useState<Vehicle>({
     vehicle_number: "",
     vehicle_type: "SEDAN",
@@ -63,7 +62,6 @@ const Admin = () => {
     driver_email: "",
   });
 
-  // Fetch vehicles from API
   const fetchVehicles = async () => {
     try {
       setIsLoading(true);
@@ -113,17 +111,14 @@ const Admin = () => {
     }
   }, [activeTab]);
 
-  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVehicleData({ ...vehicleData, [e.target.id]: e.target.value });
   };
 
-  // Handle select changes
   const handleSelectChange = (field: string, value: string) => {
     setVehicleData({ ...vehicleData, [field]: value });
   };
 
-  // Add vehicle function
   const handleAddVehicle = async () => {
     try {
       const token = localStorage.getItem("accessToken");
@@ -164,7 +159,6 @@ const Admin = () => {
     }
   };
 
-  // Edit vehicle function
   const handleEditVehicle = (vehicle: Vehicle) => {
     setVehicleData({
       vehicle_id: vehicle.vehicle_id,
@@ -179,7 +173,6 @@ const Admin = () => {
     });
   };
 
-  // Delete vehicle function
   const handleDeleteClick = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
     setIsDeleteDialogOpen(true);
@@ -211,7 +204,6 @@ const Admin = () => {
     }
   };
 
-  // Reset form
   const resetForm = () => {
     setVehicleData({
       vehicle_number: "",
@@ -224,13 +216,11 @@ const Admin = () => {
     });
   };
 
-  // Redirect to login if not authenticated
   if (!loading && !isAuthenticated) {
     console.log("Not authenticated");
     return <Navigate to="/login" />;
   }
 
-  // Redirect to dashboard if not an admin
   if (!loading && user?.role !== "admin") {
     console.log(user);
     console.log("Not an admin");
@@ -628,7 +618,6 @@ const Admin = () => {
           </div>
         )}
 
-        {/* Confirmation Dialog for Delete */}
         <ConfirmationDialog
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
