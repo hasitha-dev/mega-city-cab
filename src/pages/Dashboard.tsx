@@ -15,18 +15,7 @@ import {
   MapPin,
   CalendarCheck,
   Users,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  X,
-  Eye,
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -68,7 +57,6 @@ interface ApiResponse {
 
 const Dashboard = () => {
   const { user, isAuthenticated, loading } = useAuth();
-  const [activeRow, setActiveRow] = useState<string | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [apiBookings, setApiBookings] = useState<ApiBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -137,27 +125,6 @@ const Dashboard = () => {
       </div>
     );
   }
-
-  const handleEdit = (booking: Booking) => {
-    toast.info(`Editing booking ${booking.id}`);
-    setActiveRow(null);
-  };
-
-  const handleDelete = (booking: Booking) => {
-    if (booking.status === "Completed") {
-      toast.error("Cannot delete completed bookings");
-      return;
-    }
-
-    toast.success(`Booking ${booking.id} deleted`);
-    setBookings(bookings.filter((b) => b.id !== booking.id));
-    setActiveRow(null);
-  };
-
-  const handleView = (booking: Booking) => {
-    toast.info(`Viewing details for booking ${booking.id}`);
-    setActiveRow(null);
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -232,13 +199,12 @@ const Dashboard = () => {
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Fare</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {apiBookings.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         No bookings found. Book your first ride now!
                       </TableCell>
                     </TableRow>
@@ -258,86 +224,6 @@ const Dashboard = () => {
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                             Scheduled
                           </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2 relative">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    className="p-1 hover:bg-gray-100 rounded-full"
-                                    onClick={() =>
-                                      setActiveRow(
-                                        activeRow === booking.tripId
-                                          ? null
-                                          : booking.tripId
-                                      )
-                                    }
-                                  >
-                                    <MoreVertical className="h-4 w-4 text-gray-500" />
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="text-xs">Booking actions</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-
-                            {activeRow === booking.tripId && (
-                              <div className="absolute right-0 top-0 bg-white shadow-lg rounded-md border z-10 py-1 px-2">
-                                <div className="flex items-center justify-between pb-1">
-                                  <p className="text-xs font-semibold">Actions</p>
-                                  <button
-                                    onClick={() => setActiveRow(null)}
-                                    className="text-gray-500 hover:text-gray-700"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </button>
-                                </div>
-                                <div className="space-y-1 pt-1 border-t">
-                                  <button
-                                    className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
-                                    onClick={() => handleView({
-                                      id: booking.tripId,
-                                      pickup: booking.startLocation,
-                                      destination: booking.destination,
-                                      date: new Date(booking.date).toLocaleDateString() + ' ' + booking.startTime,
-                                      status: "Scheduled"
-                                    })}
-                                  >
-                                    <Eye className="h-3 w-3 text-gray-500" />
-                                    <span className="text-xs">View</span>
-                                  </button>
-                                  <button
-                                    className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
-                                    onClick={() => handleEdit({
-                                      id: booking.tripId,
-                                      pickup: booking.startLocation,
-                                      destination: booking.destination,
-                                      date: new Date(booking.date).toLocaleDateString() + ' ' + booking.startTime,
-                                      status: "Scheduled"
-                                    })}
-                                  >
-                                    <Pencil className="h-3 w-3 text-blue-500" />
-                                    <span className="text-xs">Edit</span>
-                                  </button>
-                                  <button
-                                    className="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 w-full rounded text-left"
-                                    onClick={() => handleDelete({
-                                      id: booking.tripId,
-                                      pickup: booking.startLocation,
-                                      destination: booking.destination,
-                                      date: new Date(booking.date).toLocaleDateString() + ' ' + booking.startTime,
-                                      status: "Scheduled"
-                                    })}
-                                  >
-                                    <Trash2 className="h-3 w-3 text-red-500" />
-                                    <span className="text-xs">Cancel</span>
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
                         </TableCell>
                       </TableRow>
                     ))

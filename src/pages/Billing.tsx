@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -11,7 +12,7 @@ import {
   Trash2,
   X,
   Search,
-  Filter,
+  FileDown,
 } from "lucide-react";
 import {
   Tooltip,
@@ -29,8 +30,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { fetchBookings, fetchBill, Bill, Booking } from "@/services/api";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
+import { format } from "date-fns";
+import { BookingForInvoice, generateInvoicePDF } from "@/utils/pdfUtils";
+
+interface ApiBooking {
+  tripId: string;
+  vehicleType: string;
+  customerEmail: string;
+  date: number;
+  destination: string;
+  startLocation: string;
+  startTime: string;
+  fare: string;
+  distance: string;
+  passengerCount: number;
+}
 
 interface Invoice {
   id: string;
@@ -38,6 +53,18 @@ interface Invoice {
   date: string;
   amount: string;
   status: "Paid" | "Pending" | "Overdue";
+  pickup: string;
+  destination: string;
+  vehicleType: string;
+  passengerCount: number;
+  distance: string;
+}
+
+interface ApiResponse {
+  success: string;
+  description: string;
+  message: string;
+  data: string; // JSON string that needs to be parsed
 }
 
 const Billing = () => {
@@ -50,42 +77,57 @@ const Billing = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   useEffect(() => {
-    const loadData = async () => {
+    const fetchBookings = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const bookingsData = await fetchBookings(user?.id);
-
-        // Convert bookings to invoices
-        const newInvoices: Invoice[] = [];
-
-        // for (const booking of bookingsData) {
-        //   try {
-        //     const bill = await fetchBill(booking.id);
-        //     if (bill) {
-        //       newInvoices.push({
-        //         id: bill.id,
-        //         bookingId: booking.id,
-        //         date: new Date(bill.createdAt).toISOString().split('T')[0],
-        //         amount: `$${bill.total.toFixed(2)}`,
-        //         status: bill.status === 'paid' ? 'Paid' : 'Pending'
-        //       });
-        //     }
-        //   } catch (error) {
-        //     console.error(`Error fetching bill for booking ${booking.id}:`, error);
-        //   }
-        // }
-
-        setInvoices(newInvoices);
+        const response = await fetch(
+          `http://localhost:8070/api/booking?userEmail=${encodeURIComponent(
+            user.email
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          }
+        );
+        
+        const responseData: ApiResponse = await response.json();
+        
+        if (responseData.success) {
+          // Parse the data string into an array of bookings
+          const parsedBookings: ApiBooking[] = JSON.parse(responseData.data);
+          
+          // Convert API bookings to invoices format
+          const newInvoices: Invoice[] = parsedBookings.map(booking => ({
+            id: booking.tripId,
+            bookingId: booking.tripId,
+            date: format(new Date(booking.date), 'yyyy-MM-dd'),
+            amount: booking.fare,
+            status: "Paid", // Default status
+            pickup: booking.startLocation,
+            destination: booking.destination,
+            vehicleType: booking.vehicleType,
+            passengerCount: booking.passengerCount,
+            distance: booking.distance
+          }));
+          
+          setInvoices(newInvoices);
+          toast.success("Invoices loaded successfully");
+        } else {
+          toast.error("Failed to load invoices");
+        }
       } catch (error) {
-        console.error("Error loading billing data:", error);
-        toast.error("Failed to load billing information");
+        console.error("Error fetching invoices:", error);
+        toast.error("Error loading invoices");
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (isAuthenticated && user) {
-      loadData();
+    if (isAuthenticated && user?.email) {
+      fetchBookings();
     }
   }, [isAuthenticated, user]);
 
@@ -121,6 +163,30 @@ const Billing = () => {
     setInvoices(invoices.filter((inv) => inv.id !== selectedInvoice.id));
     setIsDeleteDialogOpen(false);
     setSelectedInvoice(null);
+  };
+
+  const handleDownloadPDF = async (invoice: Invoice) => {
+    try {
+      const bookingForInvoice: BookingForInvoice = {
+        id: invoice.id,
+        date: invoice.date,
+        pickup: invoice.pickup,
+        destination: invoice.destination,
+        amount: invoice.amount,
+        status: invoice.status,
+        vehicleType: invoice.vehicleType,
+        passengerCount: invoice.passengerCount,
+        distance: invoice.distance
+      };
+      
+      await generateInvoicePDF(bookingForInvoice);
+      toast.success("Invoice downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
+      toast.error("Failed to download invoice");
+    }
+    
+    setActiveRow(null);
   };
 
   return (
@@ -211,10 +277,10 @@ const Billing = () => {
                         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 relative"
                       >
                         <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                          {invoice.id}
+                          {invoice.id.substring(0, 8)}...
                         </td>
                         <td className="px-6 py-4">{invoice.date}</td>
-                        <td className="px-6 py-4">{invoice.amount}</td>
+                        <td className="px-6 py-4">${invoice.amount}</td>
                         <td className="px-6 py-4">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -230,7 +296,10 @@ const Billing = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-2">
-                            <button className="text-primary hover:text-primary/80 flex items-center space-x-1">
+                            <button 
+                              className="text-primary hover:text-primary/80 flex items-center space-x-1"
+                              onClick={() => handleDownloadPDF(invoice)}
+                            >
                               <Download className="h-4 w-4" />
                               <span>Download</span>
                             </button>
